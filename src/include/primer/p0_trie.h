@@ -255,7 +255,7 @@ class Trie {
   Trie() { root_ = std::make_unique<TrieNode>('\0'); }
 
   /**
-   * TODO(P0): Add implementation
+   * DONE(P0): Add implementation
    *
    * @brief Insert key-value pair into the trie.
    *
@@ -290,6 +290,7 @@ class Trie {
       auto current_node_ptr = (*current_root_ptr)->InsertChildNode(key_char, std::make_unique<TrieNode>(key_char));
       current_node_ptr = current_node_ptr ? current_node_ptr : (*current_root_ptr)->GetChildNode(key_char);
 
+      // Reach the terminal node
       if (i == key.size() - 1) {
         if ((*current_node_ptr)->IsEndNode()) {
           // It is already a TrieNodeWithValue
@@ -311,7 +312,7 @@ class Trie {
   }
 
   /**
-   * TODO(P0): Add implementation
+   * DONE(P0): Add implementation
    *
    * @brief Remove key value pair from the trie.
    * This function should also remove nodes that are no longer part of another
@@ -392,7 +393,7 @@ class Trie {
   }
 
   /**
-   * TODO(P0): Add implementation
+   * DONE(P0): Add implementation
    *
    * @brief Get the corresponding value of type T given its key.
    * If key is empty, set success to false.
