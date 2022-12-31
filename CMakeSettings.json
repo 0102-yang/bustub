@@ -1,7 +1,7 @@
 ﻿{
   "configurations": [
     {
-      "name": "WSL-GCC-Debug",
+      "name": "WSL-Clang-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "buildRoot": "${projectDir}\\out\\build\\${name}",
@@ -10,10 +10,9 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "linux_x64" ],
+      "inheritEnvironments": [ "linux_clang_x64" ],
       "wslPath": "Ubuntu-22.04",
-      "enableClangTidyCodeAnalysis": true,
-      "clangTidyChecks": "readability-*,google-*,modernize-*"
+      "variables": []
     }
   ]
 }
