@@ -247,7 +247,7 @@ class Trie {
 
  public:
   /**
-   * TODO(P0): Add implementation
+   * DONE(P0): Add implementation
    *
    * @brief Construct a new Trie object. Initialize the root node with '\0'
    * character.
