@@ -9,12 +9,8 @@
 // Copyright (c) 2022, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
-
-#include <cassert>
-#include <cstdlib>
 #include <functional>
 #include <list>
-#include <utility>
 
 #include "container/hash/extendible_hash_table.h"
 #include "storage/page/page.h"
