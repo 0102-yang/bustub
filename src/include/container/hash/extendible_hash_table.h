@@ -33,14 +33,14 @@ namespace bustub {
  * @tparam V value type
  */
 template <typename K, typename V>
-class ExtendibleHashTable : public HashTable<K, V> {
+class ExtendibleHashTable final : public HashTable<K, V> {
  public:
   /**
    *
    * TODO(P1): Add implementation
    *
    * @brief Create a new ExtendibleHashTable.
-   * @param bucket_size: fixed size for each bucket
+   * @param bucket_size Fixed size for each bucket.
    */
   explicit ExtendibleHashTable(size_t bucket_size);
 
@@ -113,15 +113,15 @@ class ExtendibleHashTable : public HashTable<K, V> {
     explicit Bucket(size_t size, int depth = 0);
 
     /** @brief Check if a bucket is full. */
-    inline auto IsFull() const -> bool { return list_.size() == size_; }
+    [[nodiscard]] auto IsFull() const -> bool { return list_.size() == size_; }
 
     /** @brief Get the local depth of the bucket. */
-    inline auto GetDepth() const -> int { return depth_; }
+    [[nodiscard]] auto GetDepth() const -> int { return depth_; }
 
     /** @brief Increment the local depth of a bucket. */
-    inline void IncrementDepth() { depth_++; }
+    void IncrementDepth() { depth_++; }
 
-    inline auto GetItems() -> std::list<std::pair<K, V>> & { return list_; }
+    auto GetItems() -> std::list<std::pair<K, V>> & { return list_; }
 
     /**
      *
@@ -157,22 +157,29 @@ class ExtendibleHashTable : public HashTable<K, V> {
      */
     auto Insert(const K &key, const V &value) -> bool;
 
+    /**
+     * @brief Clear all the key-value pair in this bucket.
+     */
+    auto Clear() -> void { list_.clear(); }
+
    private:
     // TODO(student): You may add additional private members and helper functions
+    std::list<std::pair<K, V>> list_;
     size_t size_;
     int depth_;
-    std::list<std::pair<K, V>> list_;
   };
 
  private:
   // TODO(student): You may add additional private members and helper functions and remove the ones
   // you don't need.
 
-  int global_depth_;    // The global depth of the directory
-  size_t bucket_size_;  // The size of a bucket
-  int num_buckets_;     // The number of buckets in the hash table
+  int global_depth_;          // The global depth of the directory
+  int num_buckets_;           // The number of buckets in the hash table
+  const size_t bucket_size_;  // The size of a bucket
   mutable std::mutex latch_;
   std::vector<std::shared_ptr<Bucket>> dir_;  // The directory of the hash table
+
+  auto DoubleDirSize() -> void;
 
   // The following functions are completely optional, you can delete them if you have your own ideas.
 
