@@ -19,7 +19,7 @@ namespace bustub {
 
 template <typename K, typename V>
 ExtendibleHashTable<K, V>::ExtendibleHashTable(const size_t bucket_size)
-    : global_depth_(0), num_buckets_(1), bucket_size_(bucket_size), dir_{std::make_shared<Bucket>(bucket_size, 0)} {}
+    : bucket_size_(bucket_size), dir_{std::make_shared<Bucket>(bucket_size, 0)} {}
 
 template <typename K, typename V>
 auto ExtendibleHashTable<K, V>::IndexOf(const K &key) -> size_t {
