@@ -14,16 +14,119 @@
 
 namespace bustub {
 
-LRUKReplacer::LRUKReplacer(size_t num_frames, size_t k) : replacer_size_(num_frames), k_(k) {}
+LRUKReplacer::LRUKReplacer(const size_t num_frames, const size_t k) : max_replacer_size_(num_frames), k_(k) {}
 
-auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool { return false; }
+auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
+  std::lock_guard lock(latch_);
 
-void LRUKReplacer::RecordAccess(frame_id_t frame_id) {}
+  if (replaceable_frame_size_ == 0) {
+    return false;
+  }
 
-void LRUKReplacer::SetEvictable(frame_id_t frame_id, bool set_evictable) {}
+  const auto min = std::min_element(frames_.begin(), frames_.end());
 
-void LRUKReplacer::Remove(frame_id_t frame_id) {}
+  *frame_id = min->GetFrameId();
+  frames_.erase(min);
+  current_size_--;
+  replaceable_frame_size_--;
+  return true;
+}
 
-auto LRUKReplacer::Size() -> size_t { return 0; }
+void LRUKReplacer::RecordAccess(const frame_id_t frame_id) {
+  std::lock_guard lock(latch_);
+
+  BUSTUB_ASSERT(current_size_ < max_replacer_size_, "LRU-K replacer is full");
+
+  if (ContainsFrame(frame_id)) {
+    const auto itr = FindFrame(frame_id);
+    itr->RecordAccess();
+  } else {
+    frames_.emplace_back(frame_id, k_);
+    current_size_++;
+  }
+}
+
+void LRUKReplacer::SetEvictable(const frame_id_t frame_id, const bool set_evictable) {
+  std::lock_guard lock(latch_);
+
+  BUSTUB_ASSERT(ContainsFrame(frame_id), "Invalid frame id");
+
+  if (const auto itr = FindFrame(frame_id); itr->GetEvictFlag() ^ set_evictable) {
+    itr->SetEvictFlag(set_evictable);
+    replaceable_frame_size_ += set_evictable ? 1 : -1;
+  }
+}
+
+void LRUKReplacer::Remove(const frame_id_t frame_id) {
+  std::lock_guard lock(latch_);
+
+  if (!ContainsFrame(frame_id)) {
+    return;
+  }
+
+  const auto itr = FindFrame(frame_id);
+  BUSTUB_ASSERT(itr->GetEvictFlag(), "Frame must be evictable");
+
+  current_size_--;
+  replaceable_frame_size_--;
+
+  frames_.erase(itr);
+}
+
+auto LRUKReplacer::Size() const -> size_t {
+  std::lock_guard lock(latch_);
+  return replaceable_frame_size_;
+}
+
+auto LRUKReplacer::ContainsFrame(const frame_id_t frame_id) -> bool {
+  return frames_.end() != std::find_if(frames_.begin(), frames_.end(), [frame_id](const Frame &frame) -> bool {
+           return frame.GetFrameId() == frame_id;
+         });
+}
+
+auto LRUKReplacer::FindFrame(const frame_id_t frame_id) -> std::list<Frame>::iterator {
+  return std::find_if(frames_.begin(), frames_.end(),
+                      [frame_id](const Frame &frame) -> bool { return frame.GetFrameId() == frame_id; });
+}
+
+/************************************
+ * Frame
+ **************************************/
+LRUKReplacer::Frame::Frame(const frame_id_t frame_id, const size_t k) : frame_id_(frame_id), k_(k) { RecordAccess(); }
+
+void LRUKReplacer::Frame::RecordAccess() {
+  if (frame_timestamps_.size() == k_) {
+    frame_timestamps_.pop_front();
+  }
+
+  frame_timestamps_.push_back(Now());
+}
+
+auto LRUKReplacer::Frame::GetKDistanceTimestamp() const -> int64_t {
+  int64_t timestamp = Now() - GetEarliestTimeStamp();
+  if (frame_timestamps_.size() != k_) {
+    timestamp += INF;
+  }
+  return timestamp;
+}
+
+auto LRUKReplacer::Frame::operator<(const Frame &other_frame) const -> bool {
+  const bool flag = GetEvictFlag();
+  const bool other_flag = other_frame.GetEvictFlag();
+
+  if (flag && !other_flag) {
+    return true;
+  }
+  if (other_flag && !flag) {
+    return false;
+  }
+
+  const auto k_distance_timestamp = GetKDistanceTimestamp();
+  const auto other_k_distance_timestamp = other_frame.GetKDistanceTimestamp();
+  if (k_distance_timestamp > INF && other_k_distance_timestamp > INF) {
+    return GetEarliestTimeStamp() < other_frame.GetEarliestTimeStamp();
+  }
+  return k_distance_timestamp > other_k_distance_timestamp;
+}
 
 }  // namespace bustub

@@ -12,11 +12,11 @@
 
 #pragma once
 
-#include <limits>
+#include <algorithm>
+#include <chrono>  // NOLINT
+#include <exception>
 #include <list>
 #include <mutex>  // NOLINT
-#include <unordered_map>
-#include <vector>
 
 #include "common/config.h"
 #include "common/macros.h"
@@ -31,7 +31,7 @@ namespace bustub {
  * current timestamp and the timestamp of kth previous access.
  *
  * A frame with less than k historical references is given
- * +inf as its backward k-distance. When multiple frames have +inf backward k-distance,
+ * +INF as its backward k-distance. When multiple frames have +INF backward k-distance,
  * classical LRU algorithm is used to choose victim.
  */
 class LRUKReplacer {
@@ -40,8 +40,9 @@ class LRUKReplacer {
    *
    * TODO(P1): Add implementation
    *
-   * @brief a new LRUKReplacer.
-   * @param num_frames the maximum number of frames the LRUReplacer will be required to store
+   * @brief A new LRUKReplacer.
+   * @param num_frames The maximum number of frames the LRUReplacer will be required to store.
+   * @param k The k-distance.
    */
   explicit LRUKReplacer(size_t num_frames, size_t k);
 
@@ -60,8 +61,8 @@ class LRUKReplacer {
    * @brief Find the frame with largest backward k-distance and evict that frame. Only frames
    * that are marked as 'evictable' are candidates for eviction.
    *
-   * A frame with less than k historical references is given +inf as its backward k-distance.
-   * If multiple frames have inf backward k-distance, then evict the frame with the earliest
+   * A frame with less than k historical references is given +INF as its backward k-distance.
+   * If multiple frames have INF backward k-distance, then evict the frame with the earliest
    * timestamp overall.
    *
    * Successful eviction of a frame should decrement the size of replacer and remove the frame's
@@ -78,7 +79,7 @@ class LRUKReplacer {
    * @brief Record the event that the given frame id is accessed at current timestamp.
    * Create a new entry for access history if frame id has not been seen before.
    *
-   * If frame id is invalid (ie. larger than replacer_size_), throw an exception. You can
+   * If frame id is invalid (ie. larger than max_replacer_size_), throw an exception. You can
    * also use BUSTUB_ASSERT to abort the process if frame id is invalid.
    *
    * @param frame_id id of frame that received a new access.
@@ -130,16 +131,57 @@ class LRUKReplacer {
    *
    * @return size_t
    */
-  auto Size() -> size_t;
+  [[nodiscard]] auto Size() const -> size_t;
 
  private:
   // TODO(student): implement me! You can replace these member variables as you like.
   // Remove maybe_unused if you start using them.
-  [[maybe_unused]] size_t current_timestamp_{0};
-  [[maybe_unused]] size_t curr_size_{0};
-  [[maybe_unused]] size_t replacer_size_;
-  [[maybe_unused]] size_t k_;
-  std::mutex latch_;
+  struct Frame {
+    Frame(frame_id_t frame_id, size_t k);
+
+    [[nodiscard]] auto GetEvictFlag() const -> bool { return evict_flag_; }
+
+    void SetEvictFlag(const bool evict_flag) { evict_flag_ = evict_flag; }
+
+    [[nodiscard]] auto GetFrameId() const -> frame_id_t { return frame_id_; }
+
+    void RecordAccess();
+
+    [[nodiscard]] auto GetEarliestTimeStamp() const -> int64_t { return frame_timestamps_.front(); }
+
+    [[nodiscard]] auto GetKDistanceTimestamp() const -> int64_t;
+
+    /**
+     * @brief Operator < means the frame is more likely to be evicted.
+     */
+    auto operator<(const Frame &other_frame) const -> bool;
+
+    /**
+     * @brief Get current timestamp with nanoseconds.
+     */
+    static auto Now() -> int64_t {
+      return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch())
+          .count();
+    }
+
+   private:
+    const frame_id_t frame_id_;
+    const size_t k_;
+    bool evict_flag_ = false;
+    std::list<int64_t> frame_timestamps_;
+    static constexpr int64_t INF = 0x3f3f3f3f3f3f3f3f;
+  };
+
+  size_t replaceable_frame_size_ = 0;
+  size_t current_size_ = 0;
+  const size_t max_replacer_size_;
+  const size_t k_;
+  std::list<Frame> frames_;
+  mutable std::mutex latch_;
+
+  [[nodiscard]] auto ContainsFrame(frame_id_t frame_id) -> bool;
+
+  [[nodiscard]] auto FindFrame(frame_id_t frame_id) -> std::list<Frame>::iterator;
 };
 
 }  // namespace bustub
