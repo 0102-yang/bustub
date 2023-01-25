@@ -148,8 +148,8 @@ class ExtendibleHashTable final : public HashTable<K, V> {
   };
 
  private:
-  int global_depth_ = 0;          // The global depth of the directory
-  int num_buckets_ = 1;           // The number of buckets in the hash table
+  int global_depth_ = 0;      // The global depth of the directory
+  int num_buckets_ = 1;       // The number of buckets in the hash table
   const size_t bucket_size_;  // The size of a bucket
   mutable std::mutex latch_;
   std::vector<std::shared_ptr<Bucket>> dir_;  // The directory of the hash table
