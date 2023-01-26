@@ -130,14 +130,21 @@ class LRUKReplacer {
 
     void RecordAccess();
 
-    [[nodiscard]] auto GetEarliestTimeStamp() const -> int64_t { return frame_timestamps_.front(); }
-
-    [[nodiscard]] auto GetKDistanceTimestamp() const -> int64_t;
-
     /**
      * @brief Operator < means the frame is more likely to be evicted.
      */
     auto operator<(const Frame &other_frame) const -> bool;
+
+   private:
+    const frame_id_t frame_id_;
+    const size_t k_;
+    bool evict_flag_ = false;
+    std::list<int64_t> frame_timestamps_;
+    static constexpr int64_t INF = 0x3f3f3f3f3f3f3f3f;
+
+    [[nodiscard]] auto GetEarliestTimeStamp() const -> int64_t { return frame_timestamps_.front(); }
+
+    [[nodiscard]] auto GetKDistanceTimestamp() const -> int64_t;
 
     /**
      * @brief Get current timestamp with nanoseconds.
@@ -146,13 +153,6 @@ class LRUKReplacer {
       return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch())
           .count();
     }
-
-   private:
-    const frame_id_t frame_id_;
-    const size_t k_;
-    bool evict_flag_ = false;
-    std::list<int64_t> frame_timestamps_;
-    static constexpr int64_t INF = 0x3f3f3f3f3f3f3f3f;
   };
 
   size_t replaceable_frame_size_ = 0;
