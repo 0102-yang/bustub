@@ -164,6 +164,11 @@ class BufferPoolManagerInstance : public BufferPoolManager {
     // This is a no-nop right now without a more complex data structure to track deallocated pages
   }
 
+  /**
+   * @brief Get a free frame, firstly search free list, secondly
+   * replace a frame already in the buffer pool by lru-k replacer.
+   * @return True for succeed, otherwise false.
+   */
   auto GetFreeFrameId(frame_id_t &frame_id) -> bool;
 
   /**
@@ -175,6 +180,9 @@ class BufferPoolManagerInstance : public BufferPoolManager {
     page->pin_count_ = 1;
   }
 
+  /**
+   * @brief Clear all the data in a page, only used by deleting a page.
+   */
   static void ClearPage(Page *page) {
     page->ResetMemory();
     page->page_id_ = INVALID_PAGE_ID;
