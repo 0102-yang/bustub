@@ -87,7 +87,7 @@ auto BufferPoolManagerInstance::UnpinPgImp(const page_id_t page_id, const bool i
   }
 
   Page *page = &pages_[frame_id];
-  if (page->GetPinCount() == 0) {
+  if (page->pin_count_ == 0) {
     return false;
   }
 
