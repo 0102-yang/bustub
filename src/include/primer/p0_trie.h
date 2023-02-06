@@ -444,7 +444,7 @@ class Trie {
 
         // Find the value
         *success = true;
-        auto node_with_value = dynamic_cast<TrieNodeWithValue<T> *>(current_root_ptr->get());
+        TrieNodeWithValue<T> *node_with_value = (TrieNodeWithValue<T> *)(current_root_ptr->get());
         T ret_value = node_with_value->GetValue();
         latch_.RUnlock();
         return ret_value;
