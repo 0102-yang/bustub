@@ -14,10 +14,12 @@
 #include <string>
 #include <vector>
 
+#include "common/config.h"
 #include "concurrency/transaction.h"
 #include "storage/index/index_iterator.h"
 #include "storage/page/b_plus_tree_internal_page.h"
 #include "storage/page/b_plus_tree_leaf_page.h"
+#include "storage/page/b_plus_tree_page.h"
 
 namespace bustub {
 
@@ -76,6 +78,14 @@ class BPlusTree {
 
  private:
   void UpdateRootPageId(int insert_record = 0);
+
+  // Insert a key into parent after split a tree page.
+  void Insert(BPlusTreePage *tree_page, BPlusTreePage *new_tree_page, const KeyType &key);
+
+  auto GetKeyShouldExistLeafPage(const KeyType &key) const -> LeafPage *;
+
+  // Create a new leaf page or internal page.
+  auto NewTreePage(IndexPageType index_page_type) -> BPlusTreePage *;
 
   /* Debug Routines for FREE!! */
   void ToGraph(BPlusTreePage *page, BufferPoolManager *bpm, std::ofstream &out) const;
