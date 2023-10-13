@@ -19,7 +19,7 @@ LRUKReplacer::LRUKReplacer(const size_t num_frames, const size_t k) : max_replac
 auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
   std::lock_guard lock(latch_);
 
-  if (replaceable_frame_size_ == 0) {
+  if (evictable_frame_size_ == 0) {
     return false;
   }
 
@@ -27,22 +27,22 @@ auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
 
   *frame_id = min->GetFrameId();
   frames_.erase(min);
-  current_size_--;
-  replaceable_frame_size_--;
+  replacer_size_--;
+  evictable_frame_size_--;
   return true;
 }
 
 void LRUKReplacer::RecordAccess(const frame_id_t frame_id) {
   std::lock_guard lock(latch_);
 
-  BUSTUB_ASSERT(current_size_ < max_replacer_size_, "LRU-K replacer is full");
+  BUSTUB_ASSERT(replacer_size_ < max_replacer_size_, "LRU-K replacer is full");
 
   if (ContainsFrame(frame_id)) {
     const auto itr = FindFrame(frame_id);
     itr->RecordAccess();
   } else {
     frames_.emplace_back(frame_id, k_);
-    current_size_++;
+    replacer_size_++;
   }
 }
 
@@ -53,7 +53,7 @@ void LRUKReplacer::SetEvictable(const frame_id_t frame_id, const bool set_evicta
 
   if (const auto itr = FindFrame(frame_id); itr->GetEvictFlag() ^ set_evictable) {
     itr->SetEvictFlag(set_evictable);
-    replaceable_frame_size_ += set_evictable ? 1 : -1;
+    evictable_frame_size_ += set_evictable ? 1 : -1;
   }
 }
 
@@ -67,26 +67,20 @@ void LRUKReplacer::Remove(const frame_id_t frame_id) {
   const auto itr = FindFrame(frame_id);
   BUSTUB_ASSERT(itr->GetEvictFlag(), "Frame must be evictable");
 
-  current_size_--;
-  replaceable_frame_size_--;
+  replacer_size_--;
+  evictable_frame_size_--;
 
   frames_.erase(itr);
 }
 
-auto LRUKReplacer::Size() const -> size_t {
-  std::lock_guard lock(latch_);
-  return replaceable_frame_size_;
-}
-
 auto LRUKReplacer::ContainsFrame(const frame_id_t frame_id) -> bool {
-  return frames_.end() != std::find_if(frames_.begin(), frames_.end(), [frame_id](const Frame &frame) -> bool {
-           return frame.GetFrameId() == frame_id;
-         });
+  return frames_.end() != std::find_if(frames_.begin(), frames_.end(),
+                                       [frame_id](const Frame &frame) { return frame.GetFrameId() == frame_id; });
 }
 
 auto LRUKReplacer::FindFrame(const frame_id_t frame_id) -> std::list<Frame>::iterator {
   return std::find_if(frames_.begin(), frames_.end(),
-                      [frame_id](const Frame &frame) -> bool { return frame.GetFrameId() == frame_id; });
+                      [frame_id](const Frame &frame) { return frame.GetFrameId() == frame_id; });
 }
 
 /************************************
@@ -98,7 +92,6 @@ void LRUKReplacer::Frame::RecordAccess() {
   if (frame_timestamps_.size() == k_) {
     frame_timestamps_.pop_front();
   }
-
   frame_timestamps_.push_back(Now());
 }
 
@@ -111,13 +104,13 @@ auto LRUKReplacer::Frame::GetKDistanceTimestamp() const -> int64_t {
 }
 
 auto LRUKReplacer::Frame::operator<(const Frame &other_frame) const -> bool {
-  const bool flag = GetEvictFlag();
-  const bool other_flag = other_frame.GetEvictFlag();
+  const bool evictable = GetEvictFlag();
+  const bool other_evictable = other_frame.GetEvictFlag();
 
-  if (flag && !other_flag) {
+  if (evictable && !other_evictable) {
     return true;
   }
-  if (other_flag && !flag) {
+  if (other_evictable && !evictable) {
     return false;
   }
 

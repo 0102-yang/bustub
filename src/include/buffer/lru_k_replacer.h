@@ -116,22 +116,23 @@ class LRUKReplacer {
    *
    * @return size_t
    */
-  [[nodiscard]] auto Size() const -> size_t;
+  auto Size() const -> size_t { return evictable_frame_size_; }
 
  private:
   struct Frame {
     Frame(frame_id_t frame_id, size_t k);
 
-    [[nodiscard]] auto GetEvictFlag() const -> bool { return evict_flag_; }
+    auto GetEvictFlag() const -> bool { return evict_flag_; }
 
     void SetEvictFlag(const bool evict_flag) { evict_flag_ = evict_flag; }
 
-    [[nodiscard]] auto GetFrameId() const -> frame_id_t { return frame_id_; }
+    auto GetFrameId() const -> frame_id_t { return frame_id_; }
 
     void RecordAccess();
 
     /**
      * @brief Operator < means the frame is more likely to be evicted.
+     * First compare kth distance timestamp, otherwise compare earliest timestamp.
      */
     auto operator<(const Frame &other_frame) const -> bool;
 
@@ -142,12 +143,12 @@ class LRUKReplacer {
     std::list<int64_t> frame_timestamps_;
     static constexpr int64_t INF = 0x3f3f3f3f3f3f3f3f;
 
-    [[nodiscard]] auto GetEarliestTimeStamp() const -> int64_t { return frame_timestamps_.front(); }
+    auto GetEarliestTimeStamp() const -> int64_t { return frame_timestamps_.front(); }
 
-    [[nodiscard]] auto GetKDistanceTimestamp() const -> int64_t;
+    auto GetKDistanceTimestamp() const -> int64_t;
 
     /**
-     * @brief Get current timestamp with nanoseconds.
+     * @brief Get current timestamp in nanoseconds.
      */
     static auto Now() -> int64_t {
       return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch())
@@ -155,16 +156,16 @@ class LRUKReplacer {
     }
   };
 
-  size_t replaceable_frame_size_ = 0;
-  size_t current_size_ = 0;
+  size_t evictable_frame_size_ = 0;
+  size_t replacer_size_ = 0;
   const size_t max_replacer_size_;
   const size_t k_;
   std::list<Frame> frames_;
   mutable std::mutex latch_;
 
-  [[nodiscard]] auto ContainsFrame(frame_id_t frame_id) -> bool;
+  auto ContainsFrame(frame_id_t frame_id) -> bool;
 
-  [[nodiscard]] auto FindFrame(frame_id_t frame_id) -> std::list<Frame>::iterator;
+  auto FindFrame(frame_id_t frame_id) -> std::list<Frame>::iterator;
 };
 
 }  // namespace bustub
