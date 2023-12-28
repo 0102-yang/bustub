@@ -45,11 +45,10 @@ auto BPLUSTREE_TYPE::GetValue(const KeyType &key, std::vector<ValueType> *result
   auto leaf_page = GetKeyShouldExistLeafPage(key);
   bool key_exist = false;
   int index = 0;
-  int size = leaf_page->GetSize();
+  const int size = leaf_page->GetSize();
 
   while (index < size) {
-    auto key_i = leaf_page->KeyAt(index);
-    if (comparator_(key, key_i) == 0) {
+    if (auto key_i = leaf_page->KeyAt(index); comparator_(key, key_i) == 0) {
       key_exist = true;
       auto value_i = leaf_page->ValueAt(index);
       result->push_back(value_i);
@@ -118,7 +117,7 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
     int new_leaf_page_size = key_value.size() - leaf_page_new_size;
 
     for (int copy_to_start_index = 0; copy_to_start_index < new_leaf_page_size;
-         copy_to_start_index++, copy_from_start_index++) {
+         copy_to_start_index++, ++copy_from_start_index) {
       new_leaf_page->SetKeyAt(copy_to_start_index, key_value[copy_from_start_index].first);
       new_leaf_page->SetValueAt(copy_to_start_index, key_value[copy_from_start_index].second);
     }
@@ -148,7 +147,7 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
   }
 
   /** Debug. */
-  auto root_tree_page = reinterpret_cast<BPlusTreePage *>(buffer_pool_manager_->FetchPage(root_page_id_));
+  const auto root_tree_page = reinterpret_cast<BPlusTreePage *>(buffer_pool_manager_->FetchPage(root_page_id_));
   ToString(root_tree_page, buffer_pool_manager_);
 
   return true;
@@ -211,15 +210,15 @@ void BPLUSTREE_TYPE::Insert(BPlusTreePage *tree_page, BPlusTreePage *new_tree_pa
       sort(key_pageid.begin(), key_pageid.end(),
            [this](const auto &e1, const auto &e2) -> bool { return comparator_(e1.first, e2.first) <= 0; });
 
-      int parent_internal_page_new_size = key_pageid.size() / 2;
+      int parent_internal_page_new_size = static_cast<int>(key_pageid.size()) / 2;
       int copy_from_start_index = parent_internal_page_new_size;
-      int new_parent_internal_page_size = key_pageid.size() - parent_internal_page_new_size;
+      int new_parent_internal_page_size = static_cast<int>(key_pageid.size()) - parent_internal_page_new_size;
       KeyType insert_grandparent_key = key_pageid[copy_from_start_index].first;
 
       // Set key and pointers in new internal page.
       new_parent_internal_page->SetValueAt(0, key_pageid[copy_from_start_index++].second);
       for (int copy_to_start_index = 1; copy_to_start_index < new_parent_internal_page_size;
-           copy_to_start_index++, copy_from_start_index++) {
+           copy_to_start_index++, ++copy_from_start_index) {
         new_parent_internal_page->SetKeyAt(copy_to_start_index, key_pageid[copy_from_start_index].first);
         new_parent_internal_page->SetValueAt(copy_to_start_index, key_pageid[copy_from_start_index].second);
       }
@@ -239,7 +238,7 @@ void BPLUSTREE_TYPE::Insert(BPlusTreePage *tree_page, BPlusTreePage *new_tree_pa
       buffer_pool_manager_->UnpinPage(parent_internal_page->GetPageId(), true);
       buffer_pool_manager_->UnpinPage(new_parent_internal_page->GetPageId(), true);
     } else {
-      // Just insert key and pageid into parent internal
+      // Just insert key and page id into parent internal
       // page.
       parent_internal_page->Insert(key, new_tree_page->GetPageId(), comparator_);
       buffer_pool_manager_->UnpinPage(parent_internal_page->GetPageId(), true);
@@ -301,7 +300,7 @@ auto BPLUSTREE_TYPE::NewTreePage(IndexPageType index_page_type) -> BPlusTreePage
  *****************************************************************************/
 /*
  * Delete key & value pair associated with input key
- * If current tree is empty, return immdiately.
+ * If current tree is empty, return immediately.
  * If not, User needs to first find the right leaf page as deletion target, then
  * delete entry from leaf page. Remember to deal with redistribute or merge if
  * necessary.
@@ -313,7 +312,7 @@ void BPLUSTREE_TYPE::Remove(const KeyType &key, Transaction *transaction) {}
  * INDEX ITERATOR
  *****************************************************************************/
 /*
- * Input parameter is void, find the leaftmost leaf page first, then construct
+ * Input parameter is void, find the leftmost leaf page first, then construct
  * index iterator
  * @return : index iterator
  */

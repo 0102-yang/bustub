@@ -69,8 +69,7 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
 
   // Let index be the minimum value that satisfies key<=Ki.
   while (insert_index < size) {
-    auto key_i = KeyAt(insert_index);
-    if (comparator(key, key_i) <= 0) {
+    if (auto key_i = KeyAt(insert_index); comparator(key, key_i) <= 0) {
       break;
     }
     insert_index++;
@@ -89,12 +88,11 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
 
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::ContainsKey(const KeyType &key, const KeyComparator &comparator) const -> bool {
-  int size = GetSize();
+  const int size = GetSize();
   bool is_contains = false;
 
   for (int i = 0; i < size; i++) {
-    auto key_i = KeyAt(i);
-    if (comparator(key, key_i) == 0) {
+    if (auto key_i = KeyAt(i); comparator(key, key_i) == 0) {
       is_contains = true;
       break;
     }

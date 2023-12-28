@@ -61,10 +61,8 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType 
 
   // Let index be the minimum value that satisfies key<=Ki.
   while (insert_index < size) {
-    auto key_i = KeyAt(insert_index);
-    if (comparator(key, key_i) > 0) {
+    if (auto key_i = KeyAt(insert_index); comparator(key, key_i) > 0) {
       insert_index++;
-      continue;
     }
   }
 
@@ -79,7 +77,7 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType 
   IncreaseSize(1);
 }
 
-// valuetype for internalNode should be page id_t
+// Value type for internalNode should be page id_t
 template class BPlusTreeInternalPage<GenericKey<4>, page_id_t, GenericComparator<4>>;
 template class BPlusTreeInternalPage<GenericKey<8>, page_id_t, GenericComparator<8>>;
 template class BPlusTreeInternalPage<GenericKey<16>, page_id_t, GenericComparator<16>>;

@@ -270,7 +270,7 @@ class Trie {
     latch_.WLock();
 
     for (size_t i = 0; i < key.size(); i++) {
-      char key_char = key[i];
+      const char key_char = key[i];
       auto current_node = (*current_parent)->InsertChildNode(key_char, std::make_unique<TrieNode>(key_char));
       current_node = current_node ? current_node : (*current_parent)->GetChildNode(key_char);
 
@@ -396,7 +396,7 @@ class Trie {
     const std::unique_ptr<TrieNode> *current_parent = &root_;
 
     for (size_t i = 0; i < key.size(); i++) {
-      char key_char = key[i];
+      const char key_char = key[i];
 
       // Iterate root first
       if (!(*current_parent)->HasChild(key_char)) {
