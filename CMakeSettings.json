@@ -12,7 +12,7 @@
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_clang_x64" ],
       "wslPath": "Ubuntu-22.04",
-      "variables": []
+      "addressSanitizerEnabled": true
     }
   ]
 }
