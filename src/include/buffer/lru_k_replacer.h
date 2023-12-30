@@ -23,6 +23,19 @@
 
 namespace bustub {
 
+enum class AccessType { Unknown = 0, Get, Scan };
+
+class LRUKNode {
+ private:
+  /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */
+  // Remove maybe_unused if you start using them. Feel free to change the member variables as you want.
+
+  [[maybe_unused]] std::list<size_t> history_;
+  [[maybe_unused]] size_t k_;
+  [[maybe_unused]] frame_id_t fid_;
+  [[maybe_unused]] bool is_evictable_{false};
+};
+
 /**
  * LRUKReplacer implements the LRU-k replacement policy.
  *
@@ -74,8 +87,10 @@ class LRUKReplacer {
    * also use BUSTUB_ASSERT to abort the process if frame id is invalid.
    *
    * @param frame_id id of frame that received a new access.
+   * @param access_type type of access that was received. This parameter is only needed for
+   * leaderboard tests.
    */
-  void RecordAccess(frame_id_t frame_id);
+  void RecordAccess(frame_id_t frame_id, AccessType access_type = AccessType::Unknown);
 
   /**
    * @brief Toggle whether a frame is evictable or non-evictable. This function also

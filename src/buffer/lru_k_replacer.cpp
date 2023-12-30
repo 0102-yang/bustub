@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/lru_k_replacer.h"
+#include "common/exception.h"
 
 namespace bustub {
 
@@ -32,7 +33,7 @@ auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
   return true;
 }
 
-void LRUKReplacer::RecordAccess(const frame_id_t frame_id) {
+void LRUKReplacer::RecordAccess(const frame_id_t frame_id, [[maybe_unused]] AccessType access_type) {
   std::lock_guard lock(latch_);
 
   BUSTUB_ASSERT(replacer_size_ < max_replacer_size_, "LRU-K replacer is full");
