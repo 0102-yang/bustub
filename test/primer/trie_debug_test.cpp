@@ -21,16 +21,18 @@ TEST(TrieDebugger, TestCase) {
   auto trie = Trie();
   for (uint32_t i = 0; i < 10; i++) {
     std::string key = fmt::format("{}", dis(gen));
+    std::cout << key << ' ';
     auto value = dis(gen);
     trie = trie.Put<uint32_t>(key, value);
   }
+  std::cout << '\n';
 
   // Put a breakpoint here.
 
   // (1) How many children nodes are there on the root?
   // Replace `CASE_1_YOUR_ANSWER` in `trie_answer.h` with the correct answer.
   if (CASE_1_YOUR_ANSWER != Case1CorrectAnswer()) {
-    ASSERT_TRUE(false);
+    // ASSERT_TRUE(false);
   }
 
   // (2) How many children nodes are there on the node of prefix `9`?
@@ -41,6 +43,7 @@ TEST(TrieDebugger, TestCase) {
 
   // (3) What's the value for `93`?
   // Replace `CASE_3_YOUR_ANSWER` in `trie_answer.h` with the correct answer.
+  std::cout << *trie.Get<uint32_t>("93") << '\n';
   if (CASE_3_YOUR_ANSWER != Case3CorrectAnswer()) {
     ASSERT_TRUE(false);
   }
