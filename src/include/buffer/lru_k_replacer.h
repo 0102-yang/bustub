@@ -36,9 +36,9 @@ class LRUKNode {
   bool is_evictable_{false};
 
  public:
-  LRUKNode(size_t k, frame_id_t fid, size_t current_timestamp);
+  LRUKNode(size_t k, frame_id_t fid);
 
-  auto GetFid() const -> frame_id_t;
+  [[nodiscard]] auto GetFid() const -> frame_id_t;
 
   [[nodiscard]] auto GetBackwardKDist() const -> size_t;
 
@@ -50,7 +50,7 @@ class LRUKNode {
 
   void SetEvictable(bool evictable);
 
-  void InsertHistoryTimestamp(const size_t current_timestamp);
+  void InsertHistoryTimestamp(size_t current_timestamp);
 };
 
 /**
@@ -163,21 +163,18 @@ class LRUKReplacer {
    *
    * @return size_t
    */
-  auto Size() const -> size_t { return GetEvictableFrameSize(); }
+  auto Size() const -> size_t;
 
  private:
   // TODO(student): implement me! You can replace these member variables as you like.
   // Remove maybe_unused if you start using them.
   std::unordered_map<frame_id_t, LRUKNode> node_store_;
-  [[maybe_unused]] size_t current_timestamp_{0};
   size_t replacer_size_{0};
   const size_t max_replacer_size_;
   const size_t k_;
   mutable std::mutex latch_;
 
   static auto GetCurrentTimestamp() -> size_t;
-
-  auto GetEvictableFrameSize() const -> size_t;
 };
 
 }  // namespace bustub

@@ -22,9 +22,7 @@ namespace bustub {
  * LRUKNode implementation.
  **************************/
 
-LRUKNode::LRUKNode(const size_t k, const frame_id_t fid, const size_t current_timestamp) : k_(k), fid_(fid) {
-  InsertHistoryTimestamp(current_timestamp);
-}
+LRUKNode::LRUKNode(const size_t k, const frame_id_t fid) : k_(k), fid_(fid) {}
 
 auto LRUKNode::GetFid() const -> frame_id_t { return fid_; }
 
@@ -60,7 +58,7 @@ LRUKReplacer::LRUKReplacer(const size_t num_frames, const size_t k) : max_replac
 auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
   std::lock_guard lock(latch_);
 
-  if (GetEvictableFrameSize() == 0) {
+  if (Size() == 0) {
     // No frames can be evicted.
     return false;
   }
@@ -107,13 +105,12 @@ void LRUKReplacer::RecordAccess(const frame_id_t frame_id, [[maybe_unused]] Acce
 
   BUSTUB_ASSERT(replacer_size_ < max_replacer_size_, "LRU-K replacer is full");
 
-  if (node_store_.count(frame_id) > 0) {
-    // Frame exist in replacer.
-    node_store_.at(frame_id).InsertHistoryTimestamp(GetCurrentTimestamp());
-  } else {
-    node_store_.emplace(frame_id, LRUKNode{k_, frame_id, GetCurrentTimestamp()});
+  if (node_store_.count(frame_id) == 0) {
+    // Frame not exist in replacer.
+    node_store_.emplace(frame_id, LRUKNode{k_, frame_id});
     replacer_size_++;
   }
+  node_store_.at(frame_id).InsertHistoryTimestamp(GetCurrentTimestamp());
 }
 
 void LRUKReplacer::SetEvictable(const frame_id_t frame_id, const bool set_evictable) {
@@ -136,13 +133,13 @@ void LRUKReplacer::Remove(const frame_id_t frame_id) {
   node_store_.erase(frame_id);
 }
 
+auto LRUKReplacer::Size() const -> size_t {
+  return std::count_if(node_store_.begin(), node_store_.end(), [](const auto &p) { return p.second.IsEvictable(); });
+}
+
 auto LRUKReplacer::GetCurrentTimestamp() -> size_t {
   const auto timestamp = std::chrono::system_clock::now().time_since_epoch();
   return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count();
-}
-
-auto LRUKReplacer::GetEvictableFrameSize() const -> size_t {
-  return std::count_if(node_store_.begin(), node_store_.end(), [](const auto &p) { return p.second.IsEvictable(); });
 }
 
 }  // namespace bustub
