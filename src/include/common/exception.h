@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -51,16 +52,21 @@ enum class ExceptionType {
   EXECUTION = 12,
 };
 
+extern std::atomic<bool> global_disable_execution_exception_print;
+
 class Exception : public std::runtime_error {
  public:
   /**
    * Construct a new Exception instance.
    * @param message The exception message
    */
-  explicit Exception(const std::string &message) : std::runtime_error(message), type_(ExceptionType::INVALID) {
+  explicit Exception(const std::string &message, bool print = true)
+      : std::runtime_error(message), type_(ExceptionType::INVALID) {
 #ifndef NDEBUG
-    std::string exception_message = "Message :: " + message + "\n";
-    std::cerr << exception_message;
+    if (print) {
+      std::string exception_message = "Message :: " + message + "\n";
+      std::cerr << exception_message;
+    }
 #endif
   }
 
@@ -69,12 +75,14 @@ class Exception : public std::runtime_error {
    * @param exception_type The exception type
    * @param message The exception message
    */
-  Exception(ExceptionType exception_type, const std::string &message)
+  Exception(ExceptionType exception_type, const std::string &message, bool print = true)
       : std::runtime_error(message), type_(exception_type) {
 #ifndef NDEBUG
-    std::string exception_message =
-        "\nException Type :: " + ExceptionTypeToString(type_) + "\nMessage :: " + message + "\n";
-    std::cerr << exception_message;
+    if (print && !global_disable_execution_exception_print.load()) {
+      std::string exception_message =
+          "\nException Type :: " + ExceptionTypeToString(type_) + ", Message :: " + message + "\n\n";
+      std::cerr << exception_message;
+    }
 #endif
   }
 
@@ -104,6 +112,8 @@ class Exception : public std::runtime_error {
         return "Out of Memory";
       case ExceptionType::NOT_IMPLEMENTED:
         return "Not implemented";
+      case ExceptionType::EXECUTION:
+        return "Execution";
       default:
         return "Unknown";
     }
@@ -122,7 +132,7 @@ class NotImplementedException : public Exception {
 class ExecutionException : public Exception {
  public:
   ExecutionException() = delete;
-  explicit ExecutionException(const std::string &msg) : Exception(ExceptionType::EXECUTION, msg) {}
+  explicit ExecutionException(const std::string &msg) : Exception(ExceptionType::EXECUTION, msg, true) {}
 };
 
 }  // namespace bustub

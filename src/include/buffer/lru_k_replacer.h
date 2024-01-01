@@ -17,13 +17,15 @@
 #include <exception>
 #include <list>
 #include <mutex>  // NOLINT
+#include <unordered_map>
+#include <vector>
 
 #include "common/config.h"
 #include "common/macros.h"
 
 namespace bustub {
 
-enum class AccessType { Unknown = 0, Get, Scan };
+enum class AccessType { Unknown = 0, Lookup, Scan, Index };
 
 class LRUKNode {
   /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */
@@ -59,12 +61,15 @@ class LRUKNode {
  * current timestamp and the timestamp of kth previous access.
  *
  * A frame with less than k historical references is given
- * +INF as its backward k-distance. When multiple frames have +INF backward k-distance,
+ * +inf as its backward k-distance. When multiple frames have +inf backward k-distance,
  * classical LRU algorithm is used to choose victim.
  */
 class LRUKReplacer {
  public:
   /**
+  * *
+   * TODO(P1): Add implementation
+   *
    * @brief A new LRUKReplacer.
    * @param num_frames The maximum number of frames the LRUReplacer will be required to store.
    * @param k The k-distance.
@@ -74,17 +79,21 @@ class LRUKReplacer {
   DISALLOW_COPY_AND_MOVE(LRUKReplacer);
 
   /**
+   * TODO(P1): Add implementation
+   *
    * @brief Destroys the LRUReplacer.
    */
   ~LRUKReplacer() = default;
 
   /**
+   * TODO(P1): Add implementation
+   *
    * @brief Find the frame with largest backward k-distance and evict that frame. Only frames
    * that are marked as 'evictable' are candidates for eviction.
    *
-   * A frame with less than k historical references is given +INF as its backward k-distance.
-   * If multiple frames have INF backward k-distance, then evict the frame with the earliest
-   * timestamp overall.
+   * A frame with less than k historical references is given +inf as its backward k-distance.
+   * If multiple frames have inf backward k-distance, then evict frame with earliest timestamp
+   * based on LRU.
    *
    * Successful eviction of a frame should decrement the size of replacer and remove the frame's
    * access history.
@@ -95,10 +104,12 @@ class LRUKReplacer {
   auto Evict(frame_id_t *frame_id) -> bool;
 
   /**
+   * TODO(P1): Add implementation
+   *
    * @brief Record the event that the given frame id is accessed at current timestamp.
    * Create a new entry for access history if frame id has not been seen before.
    *
-   * If frame id is invalid (ie. larger than max_replacer_size_), throw an exception. You can
+   * If frame id is invalid (ie. larger than replacer_size_), throw an exception. You can
    * also use BUSTUB_ASSERT to abort the process if frame id is invalid.
    *
    * @param frame_id id of frame that received a new access.
@@ -108,6 +119,8 @@ class LRUKReplacer {
   void RecordAccess(frame_id_t frame_id, AccessType access_type = AccessType::Unknown);
 
   /**
+   * TODO(P1): Add implementation
+   *
    * @brief Toggle whether a frame is evictable or non-evictable. This function also
    * controls replacer's size. Note that size is equal to number of evictable entries.
    *
@@ -125,6 +138,8 @@ class LRUKReplacer {
   void SetEvictable(frame_id_t frame_id, bool set_evictable);
 
   /**
+   * TODO(P1): Add implementation
+   *
    * @brief Remove an evictable frame from replacer, along with its access history.
    * This function should also decrement replacer's size if removal is successful.
    *
@@ -142,6 +157,8 @@ class LRUKReplacer {
   void Remove(frame_id_t frame_id);
 
   /**
+   * TODO(P1): Add implementation
+   *
    * @brief Return replacer's size, which tracks the number of evictable frames.
    *
    * @return size_t

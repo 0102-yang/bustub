@@ -1,3 +1,4 @@
+#include <memory>
 #include <optional>
 #include <shared_mutex>
 #include <string>
@@ -15,11 +16,13 @@
 #include "catalog/schema.h"
 #include "catalog/table_generator.h"
 #include "common/bustub_instance.h"
-#include "common/enums/statement_type.h"
+#include "common/config.h"
 #include "common/exception.h"
 #include "common/util/string_util.h"
 #include "concurrency/lock_manager.h"
 #include "concurrency/transaction.h"
+#include "execution/check_options.h"
+#include "execution/execution_common.h"
 #include "execution/execution_engine.h"
 #include "execution/executor_context.h"
 #include "execution/executors/mock_scan_executor.h"
@@ -37,72 +40,129 @@
 
 namespace bustub {
 
-auto BustubInstance::MakeExecutorContext(Transaction *txn) -> std::unique_ptr<ExecutorContext> {
-  return std::make_unique<ExecutorContext>(txn, catalog_, buffer_pool_manager_, txn_manager_, lock_manager_);
+auto BustubInstance::MakeExecutorContext(Transaction *txn, bool is_modify) -> std::unique_ptr<ExecutorContext> {
+  return std::make_unique<ExecutorContext>(txn, catalog_.get(), buffer_pool_manager_.get(), txn_manager_.get(),
+                                           lock_manager_.get(), is_modify);
 }
 
-BustubInstance::BustubInstance(const std::string &db_file_name) {
+BustubInstance::BustubInstance(const std::string &db_file_name, size_t bpm_size) {
   enable_logging = false;
 
   // Storage related.
-  disk_manager_ = new DiskManager(db_file_name);
+  disk_manager_ = std::make_unique<DiskManager>(db_file_name);
 
+#ifndef DISABLE_CHECKPOINT_MANAGER
   // Log related.
-  log_manager_ = new LogManager(disk_manager_);
+  log_manager_ = std::make_unique<LogManager>(disk_manager_.get());
+#endif
 
   // We need more frames for GenerateTestTable to work. Therefore, we use 128 instead of the default
   // buffer pool size specified in `config.h`.
   try {
-    buffer_pool_manager_ = new BufferPoolManager(128, disk_manager_, LRUK_REPLACER_K, log_manager_);
+    buffer_pool_manager_ =
+        std::make_unique<BufferPoolManager>(bpm_size, disk_manager_.get(), LRUK_REPLACER_K, log_manager_.get());
   } catch (NotImplementedException &e) {
     std::cerr << "BufferPoolManager is not implemented, only mock tables are supported." << std::endl;
     buffer_pool_manager_ = nullptr;
   }
 
-  // Transaction (txn) related.
-  lock_manager_ = new LockManager();
-  txn_manager_ = new TransactionManager(lock_manager_, log_manager_);
+// Transaction (txn) related.
+#ifndef DISABLE_LOCK_MANAGER
+  lock_manager_ = std::make_unique<LockManager>();
+  txn_manager_ = std::make_unique<TransactionManager>(lock_manager_.get());
+#else
+  txn_manager_ = std::make_unique<TransactionManager>();
+#endif
 
+#ifndef DISABLE_LOCK_MANAGER
+  lock_manager_->txn_manager_ = txn_manager_.get();
+
+#ifndef __EMSCRIPTEN__
+  lock_manager_->StartDeadlockDetection();
+#endif
+
+#endif
+
+#ifndef DISABLE_CHECKPOINT_MANAGER
   // Checkpoint related.
-  checkpoint_manager_ = new CheckpointManager(txn_manager_, log_manager_, buffer_pool_manager_);
+  checkpoint_manager_ =
+      std::make_unique<CheckpointManager>(txn_manager_.get(), log_manager_.get(), buffer_pool_manager_.get());
+#endif
 
-  // Catalog.
-  catalog_ = new Catalog(buffer_pool_manager_, lock_manager_, log_manager_);
+  // Catalog related.
+  catalog_ = std::make_unique<Catalog>(buffer_pool_manager_.get(), lock_manager_.get(), log_manager_.get());
 
-  // Execution engine.
-  execution_engine_ = new ExecutionEngine(buffer_pool_manager_, txn_manager_, catalog_);
+  txn_manager_->catalog_ = catalog_.get();
+
+  // Execution engine related.
+  execution_engine_ = std::make_unique<ExecutionEngine>(buffer_pool_manager_.get(), txn_manager_.get(), catalog_.get());
 }
 
-BustubInstance::BustubInstance() {
+BustubInstance::BustubInstance(size_t bpm_size) {
   enable_logging = false;
 
   // Storage related.
-  disk_manager_ = new DiskManagerUnlimitedMemory();
+  disk_manager_ = std::make_unique<DiskManagerUnlimitedMemory>();
 
+#ifndef DISABLE_CHECKPOINT_MANAGER
   // Log related.
-  log_manager_ = new LogManager(disk_manager_);
+  log_manager_ = std::make_unique<LogManager>(disk_manager_.get());
+#endif
 
   // We need more frames for GenerateTestTable to work. Therefore, we use 128 instead of the default
   // buffer pool size specified in `config.h`.
   try {
-    buffer_pool_manager_ = new BufferPoolManager(128, disk_manager_, LRUK_REPLACER_K, log_manager_);
+    buffer_pool_manager_ =
+        std::make_unique<BufferPoolManager>(bpm_size, disk_manager_.get(), LRUK_REPLACER_K, log_manager_.get());
   } catch (NotImplementedException &e) {
     std::cerr << "BufferPoolManager is not implemented, only mock tables are supported." << std::endl;
     buffer_pool_manager_ = nullptr;
   }
 
-  // Transaction (txn) related.
-  lock_manager_ = new LockManager();
-  txn_manager_ = new TransactionManager(lock_manager_, log_manager_);
+#ifndef DISABLE_LOCK_MANAGER
+  lock_manager_ = std::make_unique<LockManager>();
+  txn_manager_ = std::make_unique<TransactionManager>(lock_manager_.get());
+#else
+  txn_manager_ = std::make_unique<TransactionManager>();
+#endif
 
+#ifndef DISABLE_LOCK_MANAGER
+  lock_manager_->txn_manager_ = txn_manager_.get();
+
+#ifndef __EMSCRIPTEN__
+  lock_manager_->StartDeadlockDetection();
+#endif
+#endif
+
+#ifndef DISABLE_CHECKPOINT_MANAGER
   // Checkpoint related.
-  checkpoint_manager_ = new CheckpointManager(txn_manager_, log_manager_, buffer_pool_manager_);
+  checkpoint_manager_ =
+      std::make_unique<CheckpointManager>(txn_manager_.get(), log_manager_.get(), buffer_pool_manager_.get());
+#endif
 
-  // Catalog.
-  catalog_ = new Catalog(buffer_pool_manager_, lock_manager_, log_manager_);
+  // Catalog related.
+  catalog_ = std::make_unique<Catalog>(buffer_pool_manager_.get(), lock_manager_.get(), log_manager_.get());
 
-  // Execution engine.
-  execution_engine_ = new ExecutionEngine(buffer_pool_manager_, txn_manager_, catalog_);
+  txn_manager_->catalog_ = catalog_.get();
+
+  // Execution engine related.
+  execution_engine_ = std::make_unique<ExecutionEngine>(buffer_pool_manager_.get(), txn_manager_.get(), catalog_.get());
+}
+
+void BustubInstance::CmdDbgMvcc(const std::vector<std::string> &params, ResultWriter &writer) {
+  if (params.size() != 2) {
+    writer.OneCell("please provide a table name");
+    return;
+  }
+  const auto &table = params[1];
+  writer.OneCell("please view the result in the BusTub console (or Chrome DevTools console), table=" + table);
+  std::shared_lock<std::shared_mutex> lck(catalog_lock_);
+  auto table_info = catalog_->GetTable(table);
+  if (table_info == nullptr) {
+    writer.OneCell("table " + table + " not found");
+    return;
+  }
+  TxnMgrDbg("\\dbgmvcc", txn_manager_.get(), table_info, table_info->table_.get());
 }
 
 void BustubInstance::CmdDisplayTables(ResultWriter &writer) {
@@ -146,20 +206,19 @@ void BustubInstance::CmdDisplayIndices(ResultWriter &writer) {
   writer.EndTable();
 }
 
-void BustubInstance::WriteOneCell(const std::string &cell, ResultWriter &writer) {
-  writer.BeginTable(true);
-  writer.BeginRow();
-  writer.WriteCell(cell);
-  writer.EndRow();
-  writer.EndTable();
-}
+void BustubInstance::WriteOneCell(const std::string &cell, ResultWriter &writer) { writer.OneCell(cell); }
 
 void BustubInstance::CmdDisplayHelp(ResultWriter &writer) {
   std::string help = R"(Welcome to the BusTub shell!
 
 \dt: show all tables
 \di: show all indices
+\dbgmvcc <table>: show version chain of a table
 \help: show this message again
+\txn: show current txn information
+\txn <txn_id>: switch to txn
+\txn gc: run garbage collection
+\txn -1: exit txn mode
 
 BusTub shell currently only supports a small set of Postgres queries. We'll set
 up a doc describing the current status later. It will silently ignore some parts
@@ -172,21 +231,28 @@ see the execution plan of your query.
   WriteOneCell(help, writer);
 }
 
-auto BustubInstance::ExecuteSql(const std::string &sql, ResultWriter &writer) -> bool {
-  auto txn = txn_manager_->Begin();
+auto BustubInstance::ExecuteSql(const std::string &sql, ResultWriter &writer,
+                                std::shared_ptr<CheckOptions> check_options) -> bool {
+  bool is_local_txn = current_txn_ != nullptr;
+  auto *txn = is_local_txn ? current_txn_ : txn_manager_->Begin();
   try {
-    auto result = ExecuteSqlTxn(sql, writer, txn);
-    txn_manager_->Commit(txn);
-    delete txn;
+    auto result = ExecuteSqlTxn(sql, writer, txn, std::move(check_options));
+    if (!is_local_txn) {
+      auto res = txn_manager_->Commit(txn);
+      if (!res) {
+        throw Exception("failed to commit txn");
+      }
+    }
     return result;
   } catch (bustub::Exception &ex) {
     txn_manager_->Abort(txn);
-    delete txn;
+    current_txn_ = nullptr;
     throw ex;
   }
 }
 
-auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer, Transaction *txn) -> bool {
+auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer, Transaction *txn,
+                                   std::shared_ptr<CheckOptions> check_options) -> bool {
   if (!sql.empty() && sql[0] == '\\') {
     // Internal meta-commands, like in `psql`.
     if (sql == "\\dt") {
@@ -201,6 +267,16 @@ auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer,
       CmdDisplayHelp(writer);
       return true;
     }
+    if (StringUtil::StartsWith(sql, "\\dbgmvcc")) {
+      auto split = StringUtil::Split(sql, " ");
+      CmdDbgMvcc(split, writer);
+      return true;
+    }
+    if (StringUtil::StartsWith(sql, "\\txn")) {
+      auto split = StringUtil::Split(sql, " ");
+      CmdTxn(split, writer);
+      return true;
+    }
     throw Exception(fmt::format("unsupported internal command: {}", sql));
   }
 
@@ -213,103 +289,43 @@ auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer,
 
   for (auto *stmt : binder.statement_nodes_) {
     auto statement = binder.BindStatement(stmt);
+
+    bool is_delete = false;
+
     switch (statement->type_) {
       case StatementType::CREATE_STATEMENT: {
         const auto &create_stmt = dynamic_cast<const CreateStatement &>(*statement);
-
-        std::unique_lock<std::shared_mutex> l(catalog_lock_);
-        auto info = catalog_->CreateTable(txn, create_stmt.table_, Schema(create_stmt.columns_));
-        l.unlock();
-
-        if (info == nullptr) {
-          throw bustub::Exception("Failed to create table");
-        }
-        WriteOneCell(fmt::format("Table created with id = {}", info->oid_), writer);
+        HandleCreateStatement(txn, create_stmt, writer);
         continue;
       }
       case StatementType::INDEX_STATEMENT: {
         const auto &index_stmt = dynamic_cast<const IndexStatement &>(*statement);
-
-        std::vector<uint32_t> col_ids;
-        for (const auto &col : index_stmt.cols_) {
-          auto idx = index_stmt.table_->schema_.GetColIdx(col->col_name_.back());
-          col_ids.push_back(idx);
-          if (index_stmt.table_->schema_.GetColumn(idx).GetType() != TypeId::INTEGER) {
-            throw NotImplementedException("only support creating index on integer column");
-          }
-        }
-        if (col_ids.size() != 1) {
-          throw NotImplementedException("only support creating index with exactly one column");
-        }
-        auto key_schema = Schema::CopySchema(&index_stmt.table_->schema_, col_ids);
-
-        std::unique_lock<std::shared_mutex> l(catalog_lock_);
-        auto info = catalog_->CreateIndex<IntegerKeyType, IntegerValueType, IntegerComparatorType>(
-            txn, index_stmt.index_name_, index_stmt.table_->table_, index_stmt.table_->schema_, key_schema, col_ids,
-            INTEGER_SIZE, IntegerHashFunctionType{});
-        l.unlock();
-
-        if (info == nullptr) {
-          throw bustub::Exception("Failed to create index");
-        }
-        WriteOneCell(fmt::format("Index created with id = {}", info->index_oid_), writer);
+        HandleIndexStatement(txn, index_stmt, writer);
         continue;
       }
       case StatementType::VARIABLE_SHOW_STATEMENT: {
         const auto &show_stmt = dynamic_cast<const VariableShowStatement &>(*statement);
-        auto content = GetSessionVariable(show_stmt.variable_);
-        WriteOneCell(fmt::format("{}={}", show_stmt.variable_, content), writer);
+        HandleVariableShowStatement(txn, show_stmt, writer);
         continue;
       }
       case StatementType::VARIABLE_SET_STATEMENT: {
         const auto &set_stmt = dynamic_cast<const VariableSetStatement &>(*statement);
-        session_variables_[set_stmt.variable_] = set_stmt.value_;
+        HandleVariableSetStatement(txn, set_stmt, writer);
         continue;
       }
       case StatementType::EXPLAIN_STATEMENT: {
         const auto &explain_stmt = dynamic_cast<const ExplainStatement &>(*statement);
-        std::string output;
-
-        // Print binder result.
-        if ((explain_stmt.options_ & ExplainOptions::BINDER) != 0) {
-          output += "=== BINDER ===";
-          output += "\n";
-          output += explain_stmt.statement_->ToString();
-          output += "\n";
-        }
-
-        std::shared_lock<std::shared_mutex> l(catalog_lock_);
-
-        bustub::Planner planner(*catalog_);
-        planner.PlanQuery(*explain_stmt.statement_);
-
-        bool show_schema = (explain_stmt.options_ & ExplainOptions::SCHEMA) != 0;
-
-        // Print planner result.
-        if ((explain_stmt.options_ & ExplainOptions::PLANNER) != 0) {
-          output += "=== PLANNER ===";
-          output += "\n";
-          output += planner.plan_->ToString(show_schema);
-          output += "\n";
-        }
-
-        // Print optimizer result.
-        bustub::Optimizer optimizer(*catalog_, IsForceStarterRule());
-        auto optimized_plan = optimizer.Optimize(planner.plan_);
-
-        l.unlock();
-
-        if ((explain_stmt.options_ & ExplainOptions::OPTIMIZER) != 0) {
-          output += "=== OPTIMIZER ===";
-          output += "\n";
-          output += optimized_plan->ToString(show_schema);
-          output += "\n";
-        }
-
-        WriteOneCell(output, writer);
-
+        HandleExplainStatement(txn, explain_stmt, writer);
         continue;
       }
+      case StatementType::TRANSACTION_STATEMENT: {
+        const auto &txn_stmt = dynamic_cast<const TransactionStatement &>(*statement);
+        HandleTxnStatement(txn, txn_stmt, writer);
+        continue;
+      }
+      case StatementType::DELETE_STATEMENT:
+      case StatementType::UPDATE_STATEMENT:
+        is_delete = true;
       default:
         break;
     }
@@ -327,7 +343,10 @@ auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer,
     l.unlock();
 
     // Execute the query.
-    auto exec_ctx = MakeExecutorContext(txn);
+    auto exec_ctx = MakeExecutorContext(txn, is_delete);
+    if (check_options != nullptr) {
+      exec_ctx->InitCheckOptions(std::move(check_options));
+    }
     std::vector<Tuple> result_set{};
     is_successful &= execution_engine_->Execute(optimized_plan, &result_set, txn, exec_ctx.get());
 
@@ -362,8 +381,8 @@ auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer,
  * create / drop table and insert for now. Should remove it in the future.
  */
 void BustubInstance::GenerateTestTable() {
-  auto txn = txn_manager_->Begin();
-  auto exec_ctx = MakeExecutorContext(txn);
+  auto *txn = txn_manager_->Begin();
+  auto exec_ctx = MakeExecutorContext(txn, false);
   TableGenerator gen{exec_ctx.get()};
 
   std::shared_lock<std::shared_mutex> l(catalog_lock_);
@@ -371,7 +390,6 @@ void BustubInstance::GenerateTestTable() {
   l.unlock();
 
   txn_manager_->Commit(txn);
-  delete txn;
 }
 
 /**
@@ -390,21 +408,65 @@ void BustubInstance::GenerateMockTable() {
   l.unlock();
 
   txn_manager_->Commit(txn);
-  delete txn;
 }
 
 BustubInstance::~BustubInstance() {
   if (enable_logging) {
     log_manager_->StopFlushThread();
   }
-  delete execution_engine_;
-  delete catalog_;
-  delete checkpoint_manager_;
-  delete log_manager_;
-  delete buffer_pool_manager_;
-  delete lock_manager_;
-  delete txn_manager_;
-  delete disk_manager_;
+}
+
+/** Enable managed txn mode on this BusTub instance, allowing statements like `BEGIN`. */
+void BustubInstance::EnableManagedTxn() { managed_txn_mode_ = true; }
+
+/** Get the current transaction. */
+auto BustubInstance::CurrentManagedTxn() -> Transaction * { return current_txn_; }
+
+void BustubInstance::CmdTxn(const std::vector<std::string> &params, ResultWriter &writer) {
+  if (!managed_txn_mode_) {
+    writer.OneCell("only supported in managed mode, please use bustub-shell");
+    return;
+  }
+  auto dump_current_txn = [&](const std::string &prefix) {
+    writer.OneCell(fmt::format("{}txn_id={} txn_real_id={} read_ts={} commit_ts={} status={} iso_lvl={}", prefix,
+                               current_txn_->GetTransactionIdHumanReadable(), current_txn_->GetTransactionId(),
+                               current_txn_->GetReadTs(), current_txn_->GetCommitTs(),
+                               current_txn_->GetTransactionState(), current_txn_->GetIsolationLevel()));
+  };
+  if (params.size() == 1) {
+    if (current_txn_ != nullptr) {
+      dump_current_txn("");
+    } else {
+      writer.OneCell("no active txn, each statement starts a new txn.");
+    }
+    return;
+  }
+  if (params.size() == 2) {
+    const std::string &param1 = params[1];
+    if (param1 == "gc") {
+      txn_manager_->GarbageCollection();
+      writer.OneCell("GC complete");
+      return;
+    }
+    auto txn_id = std::stoi(param1);
+    if (txn_id == -1) {
+      dump_current_txn("pause current txn ");
+      current_txn_ = nullptr;
+      return;
+    }
+    auto iter = txn_manager_->txn_map_.find(txn_id);
+    if (iter == txn_manager_->txn_map_.end()) {
+      iter = txn_manager_->txn_map_.find(txn_id + TXN_START_ID);
+      if (iter == txn_manager_->txn_map_.end()) {
+        writer.OneCell("cannot find txn.");
+        return;
+      }
+    }
+    current_txn_ = iter->second.get();
+    dump_current_txn("switch to new txn ");
+    return;
+  }
+  writer.OneCell("unsupported txn cmd.");
 }
 
 }  // namespace bustub

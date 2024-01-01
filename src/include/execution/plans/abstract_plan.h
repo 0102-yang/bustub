@@ -47,7 +47,10 @@ enum class PlanType {
   Projection,
   Sort,
   TopN,
-  MockScan
+  TopNPerGroup,
+  MockScan,
+  InitCheck,
+  Window
 };
 
 class AbstractPlanNode;
@@ -63,8 +66,8 @@ class AbstractPlanNode {
  public:
   /**
    * Create a new AbstractPlanNode with the specified output schema and children.
-   * @param output_schema the schema for the output of this plan node
-   * @param children the children of this plan node
+   * @param output_schema The schema for the output of this plan node
+   * @param children The children of this plan node
    */
   AbstractPlanNode(SchemaRef output_schema, std::vector<AbstractPlanNodeRef> children)
       : output_schema_(std::move(output_schema)), children_(std::move(children)) {}
