@@ -77,7 +77,7 @@ auto Planner::PlanSelectAgg(const SelectStatement &statement, AbstractPlanNodeRe
    * - That's all!
    */
 
-  // Create a new context which allows aggrecation call.
+  // Create a new context which allows aggregation call.
   auto guard = NewContext();
   ctx_.allow_aggregation_ = true;
 
@@ -97,6 +97,8 @@ auto Planner::PlanSelectAgg(const SelectStatement &statement, AbstractPlanNodeRe
   }
 
   // Rewrite all agg call inside expression to a pseudo one.
+  // It replaces the agg call in select_list_ with a pseudo one with index
+  // adds the real agg call to context.
   for (auto &item : statement.select_list_) {
     AddAggCallToContext(*item);
   }

@@ -35,6 +35,7 @@ auto UsageMessage() -> std::string {
       "\ti <k>  -- Insert <k> (int64_t) as both key and value).\n"
       "\tf <filename>  -- insert multiple keys from reading file.\n"
       "\tc <filename>  -- delete multiple keys from reading file.\n"
+      "\tx <filename>  -- insert or delete multiple keys from reading file.\n"
       "\td <k>  -- Delete key <k> and its associated value.\n"
       "\tg <filename>.dot  -- Output the tree in graph format to a dot file\n"
       "\tp -- Print the B+ tree.\n"
@@ -77,7 +78,8 @@ auto main(int argc, char **argv) -> int {
   page_id_t page_id;
   auto header_page = bpm->NewPage(&page_id);
   // create b+ tree
-  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", bpm, comparator, leaf_max_size, internal_max_size);
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", page_id, bpm, comparator, leaf_max_size,
+                                                           internal_max_size);
   // create transaction
   auto *transaction = new Transaction(0);
   while (!quit) {
@@ -90,6 +92,10 @@ auto main(int argc, char **argv) -> int {
       case 'c':
         std::cin >> filename;
         tree.RemoveFromFile(filename, transaction);
+        break;
+      case 'x':
+        std::cin >> filename;
+        tree.BatchOpsFromFile(filename, transaction);
         break;
       case 'd':
         std::cin >> key;
@@ -110,6 +116,7 @@ auto main(int argc, char **argv) -> int {
         quit = true;
         break;
       case 'p':
+        std::cout << tree.DrawBPlusTree() << std::endl;
         tree.Print(bpm);
         break;
       case 'g':

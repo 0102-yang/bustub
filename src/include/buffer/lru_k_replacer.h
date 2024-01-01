@@ -23,7 +23,7 @@
 
 namespace bustub {
 
-enum class AccessType { Unknown = 0, Get, Scan };
+enum class AccessType { Unknown = 0, Lookup, Scan, Index };
 
 class LRUKNode {
   /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */
@@ -59,7 +59,7 @@ class LRUKNode {
  * current timestamp and the timestamp of kth previous access.
  *
  * A frame with less than k historical references is given
- * +INF as its backward k-distance. When multiple frames have +INF backward k-distance,
+ * +inf as its backward k-distance. When multiple frames have +inf backward k-distance,
  * classical LRU algorithm is used to choose victim.
  */
 class LRUKReplacer {

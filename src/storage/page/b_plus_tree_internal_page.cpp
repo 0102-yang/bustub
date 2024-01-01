@@ -14,7 +14,6 @@
 
 #include "common/exception.h"
 #include "storage/page/b_plus_tree_internal_page.h"
-#include "storage/page/b_plus_tree_page.h"
 
 namespace bustub {
 /*****************************************************************************
@@ -22,60 +21,30 @@ namespace bustub {
  *****************************************************************************/
 /*
  * Init method after creating a new internal page
- * Including set page type, set current size, set page id, set parent id and set
- * max page size
+ * Including set page type, set current size, and set max page size
  */
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(page_id_t page_id, page_id_t parent_id, int max_size) {
-  SetPageId(page_id);
-  SetParentPageId(parent_id);
-  SetMaxSize(max_size);
-  SetSize(1);
-  SetPageType(IndexPageType::INTERNAL_PAGE);
-}
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(int max_size) {}
 /*
  * Helper method to get/set the key associated with input "index"(a.k.a
  * array offset)
  */
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyAt(int index) const -> KeyType { return array_[index].first; }
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyAt(int index) const -> KeyType {
+  // replace with your own code
+  KeyType key{};
+  return key;
+}
 
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) { array_[index].first = key; }
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) {}
 
 /*
  * Helper method to get the value associated with input "index"(a.k.a array
  * offset)
  */
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> page_id_t { return array_[index].second; }
-
-INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index, page_id_t value) { array_[index].second = value; }
-
-INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType &value,
-                                            const KeyComparator &comparator) {
-  int insert_index = 1;
-  int size = GetSize();
-
-  // Let index be the minimum value that satisfies key<=Ki.
-  while (insert_index < size) {
-    if (auto key_i = KeyAt(insert_index); comparator(key, key_i) > 0) {
-      insert_index++;
-    }
-  }
-
-  // Insert
-  while (size > insert_index) {
-    SetKeyAt(size, KeyAt(size - 1));
-    SetValueAt(size, ValueAt(size - 1));
-    size--;
-  }
-  SetKeyAt(size, key);
-  SetValueAt(size, value);
-  IncreaseSize(1);
-}
+auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType { return 0; }
 
 // Value type for internalNode should be page id_t
 template class BPlusTreeInternalPage<GenericKey<4>, page_id_t, GenericComparator<4>>;

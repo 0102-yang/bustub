@@ -13,7 +13,7 @@ file(GLOB_RECURSE BUSTUB_TEST_SOURCES "${PROJECT_SOURCE_DIR}/test/*/*test.cpp")
 # #########################################
 add_custom_target(build-tests COMMAND ${CMAKE_CTEST_COMMAND} --show-only)
 add_custom_target(check-tests COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
-add_custom_target(check-public-ci-tests COMMAND ${CMAKE_CTEST_COMMAND} --verbose -E "\"SQLLogicTest|Trie\"")
+add_custom_target(check-public-ci-tests COMMAND ${CMAKE_CTEST_COMMAND} --verbose -E "\"SQLLogicTest|Trie|BPlusTreeContentionTest\"")
 
 # #########################################
 # "make XYZ_test"
@@ -24,13 +24,13 @@ foreach (bustub_test_source ${BUSTUB_TEST_SOURCES})
     string(REPLACE ".cpp" "" bustub_test_name ${bustub_test_filename})
 
     # Add the test target separately and as part of "make check-tests".
-    add_executable(${bustub_test_name} EXCLUDE_FROM_ALL ${bustub_test_source})
+    add_executable(${bustub_test_name} EXCLUDE_FROM_ALL ${bustub_test_source} "${PROJECT_SOURCE_DIR}/tools/backtrace.cpp")
+    add_backward(${bustub_test_name})
     add_dependencies(build-tests ${bustub_test_name})
     add_dependencies(check-tests ${bustub_test_name})
 
     gtest_discover_tests(${bustub_test_name}
             EXTRA_ARGS
-            --gtest_color=auto
             --gtest_output=xml:${CMAKE_BINARY_DIR}/test/${bustub_test_name}.xml
             --gtest_catch_exceptions=0
             DISCOVERY_TIMEOUT 120
@@ -54,21 +54,25 @@ set(BUSTUB_SLT_SOURCES
         "${PROJECT_SOURCE_DIR}/test/sql/p0.03-string-scan.slt"
         "${PROJECT_SOURCE_DIR}/test/sql/p3.01-seqscan.slt"
         "${PROJECT_SOURCE_DIR}/test/sql/p3.02-insert.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.03-delete.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.04-index-scan.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.05-empty-table.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.06-simple-agg.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.07-group-agg-1.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.08-group-agg-2.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.09-simple-join.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.10-multi-way-join.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.11-repeat-execute.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.12-nested-index-join.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.13-sort-limit.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.14-topn.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.15-integration-1.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.16-integration-2.slt"
-        "${PROJECT_SOURCE_DIR}/test/sql/p3.leaderboard-q1.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.03-update.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.04-delete.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.05-index-scan.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.06-empty-table.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.07-simple-agg.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.08-group-agg-1.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.09-group-agg-2.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.10-simple-join.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.11-multi-way-join.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.12-repeat-execute.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.13-nested-index-join.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.14-hash-join.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.15-multi-way-hash-join.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.16-sort-limit.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.17-topn.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.18-integration-1.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.19-integration-2.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.20-window-function.slt"
+        "${PROJECT_SOURCE_DIR}/test/sql/p3.leaderboard-q1-window.slt"
         "${PROJECT_SOURCE_DIR}/test/sql/p3.leaderboard-q2.slt"
         "${PROJECT_SOURCE_DIR}/test/sql/p3.leaderboard-q3.slt"
         )

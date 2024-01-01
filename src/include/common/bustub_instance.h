@@ -25,6 +25,7 @@
 #include "catalog/catalog.h"
 #include "common/config.h"
 #include "common/util/string_util.h"
+#include "execution/check_options.h"
 #include "libfort/lib/fort.hpp"
 #include "type/value.h"
 
@@ -41,6 +42,13 @@ class CheckpointManager;
 class Catalog;
 class ExecutionEngine;
 
+class CreateStatement;
+class IndexStatement;
+class VariableSetStatement;
+class VariableShowStatement;
+class ExplainStatement;
+class TransactionStatement;
+
 class ResultWriter {
  public:
   ResultWriter() = default;
@@ -54,6 +62,13 @@ class ResultWriter {
   virtual void EndRow() = 0;
   virtual void BeginTable(bool simplified_output) = 0;
   virtual void EndTable() = 0;
+  virtual void OneCell(const std::string &cell) {
+    BeginTable(true);
+    BeginRow();
+    WriteCell(cell);
+    EndRow();
+    EndTable();
+  }
 
   bool simplified_output_{false};
 };
@@ -97,6 +112,20 @@ class SimpleStreamWriter : public ResultWriter {
   bool disable_header_;
   std::ostream &stream_;
   std::string separator_;
+};
+
+class StringVectorWriter : public ResultWriter {
+ public:
+  void WriteCell(const std::string &cell) override { values_.back().push_back(cell); }
+  void WriteHeaderCell(const std::string &cell) override {}
+  void BeginHeader() override {}
+  void EndHeader() override {}
+  void BeginRow() override { values_.emplace_back(); }
+  void EndRow() override {}
+  void BeginTable(bool simplified_output) override { values_.clear(); }
+  void EndTable() override {}
+
+  std::vector<std::vector<std::string>> values_;
 };
 
 class HtmlWriter : public ResultWriter {
@@ -199,6 +228,7 @@ class FortTableWriter : public ResultWriter {
     tables_.emplace_back(table_.to_string());
     table_ = fort::utf8_table{};
   }
+  void OneCell(const std::string &cell) override { tables_.emplace_back(cell + "\n"); }
   fort::utf8_table table_;
   std::vector<std::string> tables_;
 };
@@ -208,24 +238,32 @@ class BustubInstance {
   /**
    * Get the executor context from the BusTub instance.
    */
-  auto MakeExecutorContext(Transaction *txn) -> std::unique_ptr<ExecutorContext>;
+  auto MakeExecutorContext(Transaction *txn, bool is_modify) -> std::unique_ptr<ExecutorContext>;
 
  public:
-  explicit BustubInstance(const std::string &db_file_name);
+  explicit BustubInstance(const std::string &db_file_name, size_t bpm_size = 128);
 
-  BustubInstance();
+  explicit BustubInstance(size_t bpm_size = 128);
 
   ~BustubInstance();
 
   /**
    * Execute a SQL query in the BusTub instance.
    */
-  auto ExecuteSql(const std::string &sql, ResultWriter &writer) -> bool;
+  auto ExecuteSql(const std::string &sql, ResultWriter &writer, std::shared_ptr<CheckOptions> check_options = nullptr)
+      -> bool;
 
   /**
    * Execute a SQL query in the BusTub instance with provided txn.
    */
-  auto ExecuteSqlTxn(const std::string &sql, ResultWriter &writer, Transaction *txn) -> bool;
+  auto ExecuteSqlTxn(const std::string &sql, ResultWriter &writer, Transaction *txn,
+                     std::shared_ptr<CheckOptions> check_options = nullptr) -> bool;
+
+  /** Enable managed txn mode on this BusTub instance, allowing statements like `BEGIN`. */
+  void EnableManagedTxn();
+
+  /** Get the current transaction. */
+  auto CurrentManagedTxn() -> Transaction *;
 
   /**
    * FOR TEST ONLY. Generate test tables in this BusTub instance.
@@ -241,17 +279,19 @@ class BustubInstance {
    */
   void GenerateMockTable();
 
-  // TODO(chi): change to unique_ptr. Currently they're directly referenced by recovery test, so
+  // Currently the followings are directly referenced by recovery test, so
   // we cannot do anything on them until someone decides to refactor the recovery test.
 
-  DiskManager *disk_manager_;
-  BufferPoolManager *buffer_pool_manager_;
-  LockManager *lock_manager_;
-  TransactionManager *txn_manager_;
-  LogManager *log_manager_;
-  CheckpointManager *checkpoint_manager_;
-  Catalog *catalog_;
-  ExecutionEngine *execution_engine_;
+  std::unique_ptr<DiskManager> disk_manager_;
+  std::unique_ptr<BufferPoolManager> buffer_pool_manager_;
+
+  std::unique_ptr<LockManager> lock_manager_;
+  std::unique_ptr<TransactionManager> txn_manager_;
+  std::unique_ptr<LogManager> log_manager_;
+  std::unique_ptr<CheckpointManager> checkpoint_manager_;
+  std::unique_ptr<Catalog> catalog_;
+  std::unique_ptr<ExecutionEngine> execution_engine_;
+  /** Coordination for catalog */
   std::shared_mutex catalog_lock_;
 
   auto GetSessionVariable(const std::string &key) -> std::string {
@@ -268,10 +308,22 @@ class BustubInstance {
 
  private:
   void CmdDisplayTables(ResultWriter &writer);
+  void CmdDbgMvcc(const std::vector<std::string> &params, ResultWriter &writer);
+  void CmdTxn(const std::vector<std::string> &params, ResultWriter &writer);
   void CmdDisplayIndices(ResultWriter &writer);
   void CmdDisplayHelp(ResultWriter &writer);
   void WriteOneCell(const std::string &cell, ResultWriter &writer);
+
+  void HandleCreateStatement(Transaction *txn, const CreateStatement &stmt, ResultWriter &writer);
+  void HandleIndexStatement(Transaction *txn, const IndexStatement &stmt, ResultWriter &writer);
+  void HandleExplainStatement(Transaction *txn, const ExplainStatement &stmt, ResultWriter &writer);
+  void HandleTxnStatement(Transaction *txn, const TransactionStatement &stmt, ResultWriter &writer);
+  void HandleVariableShowStatement(Transaction *txn, const VariableShowStatement &stmt, ResultWriter &writer);
+  void HandleVariableSetStatement(Transaction *txn, const VariableSetStatement &stmt, ResultWriter &writer);
+
   std::unordered_map<std::string, std::string> session_variables_;
+  Transaction *current_txn_{nullptr};
+  bool managed_txn_mode_{false};
 };
 
 }  // namespace bustub
