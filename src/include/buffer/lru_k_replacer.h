@@ -26,14 +26,29 @@ namespace bustub {
 enum class AccessType { Unknown = 0, Get, Scan };
 
 class LRUKNode {
- private:
   /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */
   // Remove maybe_unused if you start using them. Feel free to change the member variables as you want.
+  std::list<size_t> history_;
+  const size_t k_;
+  const frame_id_t fid_;
+  bool is_evictable_{false};
 
-  [[maybe_unused]] std::list<size_t> history_;
-  [[maybe_unused]] size_t k_;
-  [[maybe_unused]] frame_id_t fid_;
-  [[maybe_unused]] bool is_evictable_{false};
+ public:
+  LRUKNode(size_t k, frame_id_t fid, size_t current_timestamp);
+
+  auto GetFid() const -> frame_id_t;
+
+  [[nodiscard]] auto GetBackwardKDist() const -> size_t;
+
+  [[nodiscard]] auto GetEarliestTimestamp() const -> size_t;
+
+  [[nodiscard]] auto HasInfBackwardKDist() const -> bool;
+
+  [[nodiscard]] auto IsEvictable() const -> bool;
+
+  void SetEvictable(bool evictable);
+
+  void InsertHistoryTimestamp(const size_t current_timestamp);
 };
 
 /**
@@ -131,56 +146,21 @@ class LRUKReplacer {
    *
    * @return size_t
    */
-  auto Size() const -> size_t { return evictable_frame_size_; }
+  auto Size() const -> size_t { return GetEvictableFrameSize(); }
 
  private:
-  struct Frame {
-    Frame(frame_id_t frame_id, size_t k);
-
-    auto GetEvictFlag() const -> bool { return evict_flag_; }
-
-    void SetEvictFlag(const bool evict_flag) { evict_flag_ = evict_flag; }
-
-    auto GetFrameId() const -> frame_id_t { return frame_id_; }
-
-    void RecordAccess();
-
-    /**
-     * @brief Operator < means the frame is more likely to be evicted.
-     * First compare kth distance timestamp, otherwise compare earliest timestamp.
-     */
-    auto operator<(const Frame &other_frame) const -> bool;
-
-   private:
-    const frame_id_t frame_id_;
-    const size_t k_;
-    bool evict_flag_ = false;
-    std::list<int64_t> frame_timestamps_;
-    static constexpr int64_t INF = 0x3f3f3f3f3f3f3f3f;
-
-    auto GetEarliestTimeStamp() const -> int64_t { return frame_timestamps_.front(); }
-
-    auto GetKDistanceTimestamp() const -> int64_t;
-
-    /**
-     * @brief Get current timestamp in nanoseconds.
-     */
-    static auto Now() -> int64_t {
-      return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch())
-          .count();
-    }
-  };
-
-  size_t evictable_frame_size_ = 0;
-  size_t replacer_size_ = 0;
+  // TODO(student): implement me! You can replace these member variables as you like.
+  // Remove maybe_unused if you start using them.
+  std::unordered_map<frame_id_t, LRUKNode> node_store_;
+  [[maybe_unused]] size_t current_timestamp_{0};
+  size_t replacer_size_{0};
   const size_t max_replacer_size_;
   const size_t k_;
-  std::list<Frame> frames_;
   mutable std::mutex latch_;
 
-  auto ContainsFrame(frame_id_t frame_id) -> bool;
+  static auto GetCurrentTimestamp() -> size_t;
 
-  auto FindFrame(frame_id_t frame_id) -> std::list<Frame>::iterator;
+  auto GetEvictableFrameSize() const -> size_t;
 };
 
 }  // namespace bustub

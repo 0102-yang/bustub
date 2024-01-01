@@ -11,25 +11,94 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/lru_k_replacer.h"
+
+#include <pstl/glue_numeric_defs.h>
+
 #include "common/exception.h"
 
 namespace bustub {
+
+/**************************
+ * LRUKNode implementation.
+ **************************/
+
+LRUKNode::LRUKNode(const size_t k, const frame_id_t fid, const size_t current_timestamp) : k_(k), fid_(fid) {
+  InsertHistoryTimestamp(current_timestamp);
+}
+
+auto LRUKNode::GetFid() const -> frame_id_t { return fid_; }
+
+[[nodiscard]] auto LRUKNode::GetBackwardKDist() const -> size_t {
+  BUSTUB_ASSERT(history_.size() == k_, "There must be k timestamps in history");
+  return history_.back();
+}
+
+[[nodiscard]] auto LRUKNode::GetEarliestTimestamp() const -> size_t {
+  BUSTUB_ASSERT(!history_.empty(), "There must be at least 1 timestamp in history");
+  return history_.front();
+}
+
+[[nodiscard]] auto LRUKNode::HasInfBackwardKDist() const -> bool { return history_.size() < k_; }
+
+[[nodiscard]] auto LRUKNode::IsEvictable() const -> bool { return is_evictable_; }
+
+void LRUKNode::SetEvictable(bool evictable) { is_evictable_ = evictable; }
+
+void LRUKNode::InsertHistoryTimestamp(const size_t current_timestamp) {
+  if (history_.size() == k_) {
+    history_.pop_back();
+  }
+  history_.push_front(current_timestamp);
+}
+
+/******************************
+ * LRUKReplacer implementation.
+ ******************************/
 
 LRUKReplacer::LRUKReplacer(const size_t num_frames, const size_t k) : max_replacer_size_(num_frames), k_(k) {}
 
 auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
   std::lock_guard lock(latch_);
 
-  if (evictable_frame_size_ == 0) {
+  if (GetEvictableFrameSize() == 0) {
+    // No frames can be evicted.
     return false;
   }
 
-  const auto min = std::min_element(frames_.begin(), frames_.end());
+  /**************
+   * Evict frame.
+   **************/
+  std::vector<const LRUKNode *> evictable_nodes;
+  for (const auto &[_, node] : node_store_) {
+    if (node.IsEvictable()) {
+      evictable_nodes.push_back(&node);
+    }
+  }
 
-  *frame_id = min->GetFrameId();
-  frames_.erase(min);
+  std::vector<const LRUKNode *> evictable_inf_nodes;
+  std::copy_if(evictable_nodes.begin(), evictable_nodes.end(), std::back_inserter(evictable_inf_nodes),
+               [](const LRUKNode *node) { return node->HasInfBackwardKDist(); });
+
+  if (evictable_inf_nodes.empty()) {
+    // All frames have non-INF k-distance, then evict a frame
+    // whose backward k-distance is maximum of all frames in the replacer.
+    const auto min_node = std::min_element(evictable_nodes.begin(), evictable_nodes.end(),
+                                           [](const LRUKNode *node1, const LRUKNode *node2) {
+                                             return node1->GetBackwardKDist() < node2->GetBackwardKDist();
+                                           });
+    *frame_id = (*min_node)->GetFid();
+  } else {
+    // While multiple frames have INF backward k-distance, then evict the frame with the earliest
+    // timestamp overall.
+    const auto min_node = std::min_element(evictable_inf_nodes.begin(), evictable_inf_nodes.end(),
+                                           [](const LRUKNode *node1, const LRUKNode *node2) {
+                                             return node1->GetEarliestTimestamp() < node2->GetEarliestTimestamp();
+                                           });
+    *frame_id = (*min_node)->GetFid();
+  }
+
+  node_store_.erase(*frame_id);
   replacer_size_--;
-  evictable_frame_size_--;
   return true;
 }
 
@@ -38,11 +107,11 @@ void LRUKReplacer::RecordAccess(const frame_id_t frame_id, [[maybe_unused]] Acce
 
   BUSTUB_ASSERT(replacer_size_ < max_replacer_size_, "LRU-K replacer is full");
 
-  if (ContainsFrame(frame_id)) {
-    const auto itr = FindFrame(frame_id);
-    itr->RecordAccess();
+  if (node_store_.count(frame_id) > 0) {
+    // Frame exist in replacer.
+    node_store_.at(frame_id).InsertHistoryTimestamp(GetCurrentTimestamp());
   } else {
-    frames_.emplace_back(frame_id, k_);
+    node_store_.emplace(frame_id, LRUKNode{k_, frame_id, GetCurrentTimestamp()});
     replacer_size_++;
   }
 }
@@ -50,77 +119,30 @@ void LRUKReplacer::RecordAccess(const frame_id_t frame_id, [[maybe_unused]] Acce
 void LRUKReplacer::SetEvictable(const frame_id_t frame_id, const bool set_evictable) {
   std::lock_guard lock(latch_);
 
-  BUSTUB_ASSERT(ContainsFrame(frame_id), "Invalid frame id");
+  BUSTUB_ASSERT(node_store_.count(frame_id) > 0, "Invalid frame id");
 
-  if (const auto itr = FindFrame(frame_id); itr->GetEvictFlag() ^ set_evictable) {
-    itr->SetEvictFlag(set_evictable);
-    evictable_frame_size_ += set_evictable ? 1 : -1;
-  }
+  node_store_.at(frame_id).SetEvictable(set_evictable);
 }
 
 void LRUKReplacer::Remove(const frame_id_t frame_id) {
   std::lock_guard lock(latch_);
 
-  if (!ContainsFrame(frame_id)) {
+  if (node_store_.count(frame_id) == 0) {
     return;
   }
 
-  const auto itr = FindFrame(frame_id);
-  BUSTUB_ASSERT(itr->GetEvictFlag(), "Frame must be evictable");
-
+  // Remove.
   replacer_size_--;
-  evictable_frame_size_--;
-
-  frames_.erase(itr);
+  node_store_.erase(frame_id);
 }
 
-auto LRUKReplacer::ContainsFrame(const frame_id_t frame_id) -> bool {
-  return frames_.end() != std::find_if(frames_.begin(), frames_.end(),
-                                       [frame_id](const Frame &frame) { return frame.GetFrameId() == frame_id; });
+auto LRUKReplacer::GetCurrentTimestamp() -> size_t {
+  const auto timestamp = std::chrono::system_clock::now().time_since_epoch();
+  return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count();
 }
 
-auto LRUKReplacer::FindFrame(const frame_id_t frame_id) -> std::list<Frame>::iterator {
-  return std::find_if(frames_.begin(), frames_.end(),
-                      [frame_id](const Frame &frame) { return frame.GetFrameId() == frame_id; });
-}
-
-/************************************
- * Frame
- **************************************/
-LRUKReplacer::Frame::Frame(const frame_id_t frame_id, const size_t k) : frame_id_(frame_id), k_(k) { RecordAccess(); }
-
-void LRUKReplacer::Frame::RecordAccess() {
-  if (frame_timestamps_.size() == k_) {
-    frame_timestamps_.pop_front();
-  }
-  frame_timestamps_.push_back(Now());
-}
-
-auto LRUKReplacer::Frame::GetKDistanceTimestamp() const -> int64_t {
-  int64_t timestamp = Now() - GetEarliestTimeStamp();
-  if (frame_timestamps_.size() != k_) {
-    timestamp += INF;
-  }
-  return timestamp;
-}
-
-auto LRUKReplacer::Frame::operator<(const Frame &other_frame) const -> bool {
-  const bool evictable = GetEvictFlag();
-  const bool other_evictable = other_frame.GetEvictFlag();
-
-  if (evictable && !other_evictable) {
-    return true;
-  }
-  if (other_evictable && !evictable) {
-    return false;
-  }
-
-  const auto k_distance_timestamp = GetKDistanceTimestamp();
-  const auto other_k_distance_timestamp = other_frame.GetKDistanceTimestamp();
-  if (k_distance_timestamp > INF && other_k_distance_timestamp > INF) {
-    return GetEarliestTimeStamp() < other_frame.GetEarliestTimeStamp();
-  }
-  return k_distance_timestamp > other_k_distance_timestamp;
+auto LRUKReplacer::GetEvictableFrameSize() const -> size_t {
+  return std::count_if(node_store_.begin(), node_store_.end(), [](const auto &p) { return p.second.IsEvictable(); });
 }
 
 }  // namespace bustub
