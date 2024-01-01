@@ -39,7 +39,6 @@ TEST(TrieDebugger, TestCase) {
     }
     trie = trie.Put<uint32_t>(key, value);
   }
-  std::cout << '\n';
 
   // Put a breakpoint here.
 
