@@ -199,13 +199,25 @@ auto BufferPoolManager::DeletePage(const page_id_t page_id) -> bool {
 
 auto BufferPoolManager::AllocatePage() -> page_id_t { return next_page_id_++; }
 
-auto BufferPoolManager::FetchPageBasic(page_id_t page_id) -> BasicPageGuard { return {this, nullptr}; }
+auto BufferPoolManager::FetchPageBasic(const page_id_t page_id) -> BasicPageGuard {
+  Page *fetch_page = FetchPage(page_id);
+  return {this, fetch_page};
+}
 
-auto BufferPoolManager::FetchPageRead(page_id_t page_id) -> ReadPageGuard { return {this, nullptr}; }
+auto BufferPoolManager::FetchPageRead(const page_id_t page_id) -> ReadPageGuard {
+  Page *fetch_page = FetchPage(page_id);
+  return {this, fetch_page};
+}
 
-auto BufferPoolManager::FetchPageWrite(page_id_t page_id) -> WritePageGuard { return {this, nullptr}; }
+auto BufferPoolManager::FetchPageWrite(const page_id_t page_id) -> WritePageGuard {
+  Page *fetch_page = FetchPage(page_id);
+  return {this, fetch_page};
+}
 
-auto BufferPoolManager::NewPageGuarded(page_id_t *page_id) -> BasicPageGuard { return {this, nullptr}; }
+auto BufferPoolManager::NewPageGuarded(page_id_t *page_id) -> BasicPageGuard {
+  Page *new_page = NewPage(page_id);
+  return {this, new_page};
+}
 
 auto BufferPoolManager::GetFreeFrameId() -> std::optional<frame_id_t> {
   if (free_list_.empty() && replacer_->Size() == 0) {

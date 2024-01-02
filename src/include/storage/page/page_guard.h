@@ -52,7 +52,7 @@ class BasicPageGuard {
    */
   auto operator=(BasicPageGuard &&that) noexcept -> BasicPageGuard &;
 
-  /** TODO(P1): Add implementation
+  /** TODO(P2): Add implementation
    *
    * @brief Destructor for BasicPageGuard
    *
@@ -83,9 +83,9 @@ class BasicPageGuard {
    */
   auto UpgradeWrite() -> WritePageGuard;
 
-  auto PageId() -> page_id_t { return page_->GetPageId(); }
+  [[nodiscard]] auto PageId() const -> page_id_t { return page_->GetPageId(); }
 
-  auto GetData() -> const char * { return page_->GetData(); }
+  [[nodiscard]] auto GetData() const -> const char * { return page_->GetData(); }
 
   template <class T>
   auto As() -> const T * {
@@ -106,7 +106,7 @@ class BasicPageGuard {
   friend class ReadPageGuard;
   friend class WritePageGuard;
 
-  [[maybe_unused]] BufferPoolManager *bpm_{nullptr};
+  BufferPoolManager *bpm_{nullptr};
   Page *page_{nullptr};
   bool is_dirty_{false};
 };
@@ -157,9 +157,9 @@ class ReadPageGuard {
    */
   ~ReadPageGuard();
 
-  auto PageId() -> page_id_t { return guard_.PageId(); }
+  [[nodiscard]] auto PageId() const -> page_id_t { return guard_.PageId(); }
 
-  auto GetData() -> const char * { return guard_.GetData(); }
+  [[nodiscard]] auto GetData() const -> const char * { return guard_.GetData(); }
 
   template <class T>
   auto As() -> const T * {
@@ -217,9 +217,9 @@ class WritePageGuard {
    */
   ~WritePageGuard();
 
-  auto PageId() -> page_id_t { return guard_.PageId(); }
+  [[nodiscard]] auto PageId() const -> page_id_t { return guard_.PageId(); }
 
-  auto GetData() -> const char * { return guard_.GetData(); }
+  [[nodiscard]] auto GetData() const -> const char * { return guard_.GetData(); }
 
   template <class T>
   auto As() -> const T * {
