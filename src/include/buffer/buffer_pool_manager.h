@@ -47,10 +47,10 @@ class BufferPoolManager {
   ~BufferPoolManager();
 
   /** @brief Return the size (number of frames) of the buffer pool. */
-  auto GetPoolSize() -> size_t { return pool_size_; }
+  auto GetPoolSize() const -> size_t { return pool_size_; }
 
   /** @brief Return the pointer to all the pages in the buffer pool. */
-  auto GetPages() -> Page * { return pages_; }
+  auto GetPages() const -> Page * { return pages_; }
 
   /**
    * TODO(P1): Add implementation
@@ -181,7 +181,7 @@ class BufferPoolManager {
   /** Array of buffer pool pages. */
   Page *pages_;
   /** Pointer to the disk sheduler. */
-  std::unique_ptr<DiskScheduler> disk_scheduler_ __attribute__((__unused__));
+  std::unique_ptr<DiskScheduler> disk_scheduler_;
   /** Pointer to the log manager. Please ignore this for P1. */
   LogManager *log_manager_ __attribute__((__unused__));
   /** Page table for keeping track of buffer pool pages. */
@@ -191,7 +191,7 @@ class BufferPoolManager {
   /** List of free frames that don't have any pages on them. */
   std::list<frame_id_t> free_list_;
   /** This latch protects shared data structures. We recommend updating this comment to describe what it protects. */
-  std::mutex latch_;
+  std::recursive_mutex latch_;
 
   /**
    * @brief Allocate a page on disk. Caller should acquire the latch before calling this function.
@@ -206,6 +206,18 @@ class BufferPoolManager {
   void DeallocatePage(__attribute__((unused)) page_id_t page_id) {
     // This is a no-nop right now without a more complex data structure to track deallocated pages
   }
+
+  /**
+   * @brief Get free frame id.
+   * @return frame id.
+   */
+  auto GetFreeFrameId() -> std::optional<frame_id_t>;
+
+  /**
+   * @brief Reset page meta data, i.e. page id, dirty flag, pin count.
+   * Used for NewPage and FetchPage.
+   */
+  static void ResetPageMetaDataToDefault(Page *page, page_id_t page_id);
 
   // TODO(student): You may add additional private members and helper functions
 };

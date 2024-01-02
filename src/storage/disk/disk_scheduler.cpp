@@ -30,14 +30,7 @@ DiskScheduler::~DiskScheduler() {
   }
 }
 
-void DiskScheduler::Schedule(DiskRequest r) {
-  if (r.is_write_) {
-    disk_manager_->WritePage(r.page_id_, r.data_);
-  } else {
-    disk_manager_->ReadPage(r.page_id_, r.data_);
-  }
-  r.callback_.set_value(true);
-}
+void DiskScheduler::Schedule(DiskRequest r) { request_queue_.Put(std::make_optional(std::move(r))); }
 
 void DiskScheduler::StartWorkerThread() {
   while (true) {
@@ -45,7 +38,14 @@ void DiskScheduler::StartWorkerThread() {
     if (!r.has_value()) {
       return;
     }
-    Schedule(std::move(r.value()));
+
+    // Read data from or write data to the disk.
+    if (r->is_write_) {
+      disk_manager_->WritePage(r->page_id_, r->data_);
+    } else {
+      disk_manager_->ReadPage(r->page_id_, r->data_);
+    }
+    r->callback_.set_value(true);
   }
 }
 

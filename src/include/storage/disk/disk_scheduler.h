@@ -81,7 +81,7 @@ class DiskScheduler {
    *
    * @return std::promise<bool>
    */
-  auto CreatePromise() -> DiskSchedulerPromise { return {}; }
+  static auto CreatePromise() -> DiskSchedulerPromise { return {}; }
 
  private:
   /** Pointer to the disk manager. */
