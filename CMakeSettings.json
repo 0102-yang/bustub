@@ -13,6 +13,20 @@
       "inheritEnvironments": [ "linux_clang_x64" ],
       "wslPath": "Ubuntu-22.04",
       "addressSanitizerEnabled": true
+    },
+    {
+      "name": "WSL-Clang-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeExecutable": "cmake",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_clang_x64" ],
+      "wslPath": "Ubuntu-22.04",
+      "variables": []
     }
   ]
 }
