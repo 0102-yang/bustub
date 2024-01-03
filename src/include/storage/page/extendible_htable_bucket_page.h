@@ -37,7 +37,7 @@ namespace bustub {
 
 static constexpr uint64_t HTABLE_BUCKET_PAGE_METADATA_SIZE = sizeof(uint32_t) * 2;
 
-constexpr auto HTableBucketArraySize(uint64_t mapping_type_size) -> uint64_t {
+constexpr auto HTableBucketArraySize(const uint64_t mapping_type_size) -> uint64_t {
   return (BUSTUB_PAGE_SIZE - HTABLE_BUCKET_PAGE_METADATA_SIZE) / mapping_type_size;
 };
 
@@ -114,17 +114,17 @@ class ExtendibleHTableBucketPage {
   /**
    * @return number of entries in the bucket
    */
-  auto Size() const -> uint32_t;
+  [[nodiscard]] auto Size() const -> uint32_t;
 
   /**
    * @return whether the bucket is full
    */
-  auto IsFull() const -> bool;
+  [[nodiscard]] auto IsFull() const -> bool;
 
   /**
    * @return whether the bucket is empty
    */
-  auto IsEmpty() const -> bool;
+  [[nodiscard]] auto IsEmpty() const -> bool;
 
   /**
    * Prints the bucket's occupancy information

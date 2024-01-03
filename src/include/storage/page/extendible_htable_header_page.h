@@ -48,7 +48,7 @@ class ExtendibleHTableHeaderPage {
    * @param hash the hash of the key
    * @return directory index the key is hashed to
    */
-  auto HashToDirectoryIndex(uint32_t hash) const -> uint32_t;
+  [[nodiscard]] auto HashToDirectoryIndex(uint32_t hash) const -> uint32_t;
 
   /**
    * Get the directory page id at an index
@@ -56,7 +56,7 @@ class ExtendibleHTableHeaderPage {
    * @param directory_idx index in the directory page id array
    * @return directory page_id at index
    */
-  auto GetDirectoryPageId(uint32_t directory_idx) const -> uint32_t;
+  [[nodiscard]] auto GetDirectoryPageId(uint32_t directory_idx) const -> uint32_t;
 
   /**
    * @brief Set the directory page id at an index
@@ -69,7 +69,7 @@ class ExtendibleHTableHeaderPage {
   /**
    * @brief Get the maximum number of directory page ids the header page could handle
    */
-  auto MaxSize() const -> uint32_t;
+  [[nodiscard]] auto MaxSize() const -> uint32_t;
 
   /**
    * Prints the header's occupancy information

@@ -61,7 +61,7 @@ class ExtendibleHTableDirectoryPage {
    * @param hash the hash of the key
    * @return bucket index current key is hashed to
    */
-  auto HashToBucketIndex(uint32_t hash) const -> uint32_t;
+  [[nodiscard]] auto HashToBucketIndex(uint32_t hash) const -> uint32_t;
 
   /**
    * Lookup a bucket page using a directory index
@@ -69,7 +69,7 @@ class ExtendibleHTableDirectoryPage {
    * @param bucket_idx the index in the directory to lookup
    * @return bucket page_id corresponding to bucket_idx
    */
-  auto GetBucketPageId(uint32_t bucket_idx) const -> page_id_t;
+  [[nodiscard]] auto GetBucketPageId(uint32_t bucket_idx) const -> page_id_t;
 
   /**
    * Updates the directory index using a bucket index and page_id
@@ -85,7 +85,7 @@ class ExtendibleHTableDirectoryPage {
    * @param bucket_idx the directory index for which to find the split image
    * @return the directory index of the split image
    **/
-  auto GetSplitImageIndex(uint32_t bucket_idx) const -> uint32_t;
+  [[nodiscard]] auto GetSplitImageIndex(uint32_t bucket_idx) const -> uint32_t;
 
   /**
    * GetGlobalDepthMask - returns a mask of global_depth 1's and the rest 0's.
@@ -101,7 +101,7 @@ class ExtendibleHTableDirectoryPage {
    *
    * @return mask of global_depth 1's and the rest 0's (with 1's from LSB upwards)
    */
-  auto GetGlobalDepthMask() const -> uint32_t;
+  [[nodiscard]] auto GetGlobalDepthMask() const -> uint32_t;
 
   /**
    * GetLocalDepthMask - same as global depth mask, except it
@@ -110,16 +110,16 @@ class ExtendibleHTableDirectoryPage {
    * @param bucket_idx the index to use for looking up local depth
    * @return mask of local 1's and the rest 0's (with 1's from LSB upwards)
    */
-  auto GetLocalDepthMask(uint32_t bucket_idx) const -> uint32_t;
+  [[nodiscard]] auto GetLocalDepthMask(uint32_t bucket_idx) const -> uint32_t;
 
   /**
    * Get the global depth of the hash table directory
    *
    * @return the global depth of the directory
    */
-  auto GetGlobalDepth() const -> uint32_t;
+  [[nodiscard]] auto GetGlobalDepth() const -> uint32_t;
 
-  auto GetMaxDepth() const -> uint32_t;
+  [[nodiscard]] auto GetMaxDepth() const -> uint32_t;
 
   /**
    * Increment the global depth of the directory
@@ -139,12 +139,12 @@ class ExtendibleHTableDirectoryPage {
   /**
    * @return the current directory size
    */
-  auto Size() const -> uint32_t;
+  [[nodiscard]] auto Size() const -> uint32_t;
 
   /**
    * @return the max directory size
    */
-  auto MaxSize() const -> uint32_t;
+  [[nodiscard]] auto MaxSize() const -> uint32_t;
 
   /**
    * Gets the local depth of the bucket at bucket_idx
@@ -152,7 +152,7 @@ class ExtendibleHTableDirectoryPage {
    * @param bucket_idx the bucket index to lookup
    * @return the local depth of the bucket at bucket_idx
    */
-  auto GetLocalDepth(uint32_t bucket_idx) const -> uint32_t;
+  [[nodiscard]] auto GetLocalDepth(uint32_t bucket_idx) const -> uint32_t;
 
   /**
    * Set the local depth of the bucket at bucket_idx to local_depth
