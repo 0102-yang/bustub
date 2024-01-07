@@ -20,7 +20,7 @@ class BasicPageGuard {
 
   [[nodiscard]] auto GetData() const -> const char * { return page_->GetData(); }
 
-  virtual ~BasicPageGuard();
+  virtual ~BasicPageGuard() = 0;
 
   template <class T>
   auto As() -> const T * {
@@ -105,6 +105,7 @@ class WritePageGuard : public BasicPageGuard {
 
   template <class T>
   auto AsMut() -> T * {
+    is_dirty_ = true;
     char *data = page_->GetData();
     return reinterpret_cast<T *>(data);
   }

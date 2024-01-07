@@ -83,7 +83,7 @@ class BufferPoolManager {
    * @param[out] page_id, the id of the new page
    * @return BasicPageGuard holding a new page
    */
-  auto NewPageGuarded(page_id_t *page_id) -> BasicPageGuard;
+  auto NewPageGuarded(page_id_t *page_id) -> WritePageGuard;
 
   /**
    * TODO(P1): Add implementation
@@ -117,7 +117,6 @@ class BufferPoolManager {
    * @param page_id, the id of the page to fetch
    * @return PageGuard holding the fetched page
    */
-  auto FetchPageBasic(page_id_t page_id) -> BasicPageGuard;
   auto FetchPageRead(page_id_t page_id) -> ReadPageGuard;
   auto FetchPageWrite(page_id_t page_id) -> WritePageGuard;
 

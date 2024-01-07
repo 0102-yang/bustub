@@ -66,8 +66,6 @@ auto TableIterator::operator++() -> TableIterator & {
     rid_ = RID{next_page_id, 0};
   }
 
-  page_guard.Drop();
-
   return *this;
 }
 

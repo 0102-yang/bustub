@@ -23,11 +23,7 @@ auto BasicPageGuard::operator=(BasicPageGuard &&that) noexcept -> BasicPageGuard
   return *this;
 }
 
-BasicPageGuard::~BasicPageGuard() {
-  if (page_) {
-    bpm_->UnpinPage(PageId(), is_dirty_);
-  }
-}
+BasicPageGuard::~BasicPageGuard() = default;
 
 ReadPageGuard::ReadPageGuard(BufferPoolManager *bpm, Page *page) : BasicPageGuard(bpm, page) { page_->RLatch(); }
 
@@ -41,6 +37,7 @@ auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & 
 ReadPageGuard::~ReadPageGuard() {
   if (page_) {
     page_->RUnlatch();
+    bpm_->UnpinPage(PageId(), is_dirty_);
   }
 }
 
@@ -56,6 +53,7 @@ auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard
 WritePageGuard::~WritePageGuard() {
   if (page_) {
     page_->WUnlatch();
+    bpm_->UnpinPage(PageId(), is_dirty_);
   }
 }
 

@@ -60,8 +60,6 @@ auto TableHeap::InsertTuple(const TupleMeta &meta, const Tuple &tuple, LockManag
     auto next_page = reinterpret_cast<TablePage *>(npg->GetData());
     next_page->Init();
 
-    page_guard.Drop();
-
     // acquire latch here as TSAN complains. Given we only have one insertion thread, this is fine.
     npg->WLatch();
     auto next_page_guard = WritePageGuard{bpm_, npg};
@@ -83,8 +81,6 @@ auto TableHeap::InsertTuple(const TupleMeta &meta, const Tuple &tuple, LockManag
                   "failed to lock when inserting new tuple");
   }
 #endif
-
-  page_guard.Drop();
 
   return RID(last_page_id, slot_id);
 }
@@ -117,7 +113,6 @@ auto TableHeap::MakeIterator() -> TableIterator {
   auto page_guard = bpm_->FetchPageRead(last_page_id);
   auto page = page_guard.As<TablePage>();
   auto num_tuples = page->GetNumTuples();
-  page_guard.Drop();
   return {this, {first_page_id_, 0}, {last_page_id, num_tuples}};
 }
 

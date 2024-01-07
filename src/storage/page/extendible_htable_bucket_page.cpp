@@ -21,7 +21,7 @@ namespace bustub {
 template <typename K, typename V, typename KC>
 void ExtendibleHTableBucketPage<K, V, KC>::Init(const uint32_t max_size) {
   size_ = 0U;
-  max_size_ = max_size;
+  max_size_ = std::min(max_size, static_cast<uint32_t>(HTableBucketArraySize(sizeof(std::pair<K, V>))));
 }
 
 template <typename K, typename V, typename KC>
@@ -40,16 +40,15 @@ template <typename K, typename V, typename KC>
 auto ExtendibleHTableBucketPage<K, V, KC>::Insert(const K &key, const V &value, const KC &cmp) -> bool {
   auto it = std::find_if(std::begin(array_), std::begin(array_) + size_,
                          [&cmp, &key](const auto &pair) { return cmp(key, pair.first) == 0; });
-  // If key exist, overwrite value of it.
+  // If key exist, insert fail.
   // If key does not exist, add it to the end of the array.
-  if (it == std::begin(array_) + size_) {
-    if (size_ == max_size_) {
-      return false;
-    }
-    array_[size_++] = {key, value};
-  } else {
-    it->second = value;
+  if (it != std::begin(array_) + size_) {
+    return false;
   }
+  if (size_ == max_size_) {
+    return false;
+  }
+  array_[size_++] = {key, value};
   return true;
 }
 

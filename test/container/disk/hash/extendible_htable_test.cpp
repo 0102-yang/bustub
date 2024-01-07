@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <random>
 #include <thread>  // NOLINT
 #include <vector>
 
@@ -23,16 +24,16 @@
 namespace bustub {
 
 // NOLINTNEXTLINE
-TEST(ExtendibleHTableTest, DISABLED_InsertTest1) {
-  auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
-  auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
+TEST(ExtendibleHTableTest, InsertTest1) {
+  const auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
+  const auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 0, 2, 2);
 
-  int num_keys = 8;
+  const int num_keys = 8;
 
   // insert some values
-  for (int i = 0; i < num_keys; i++) {
+  for (int i = 0; i < num_keys; ++i) {
     bool inserted = ht.Insert(i, i);
     ASSERT_TRUE(inserted);
     std::vector<int> res;
@@ -48,13 +49,13 @@ TEST(ExtendibleHTableTest, DISABLED_InsertTest1) {
 }
 
 // NOLINTNEXTLINE
-TEST(ExtendibleHTableTest, DISABLED_InsertTest2) {
-  auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
-  auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
+TEST(ExtendibleHTableTest, InsertTest2) {
+  const auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
+  const auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
   DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 2, 3, 2);
 
-  int num_keys = 5;
+  const int num_keys = 5;
 
   // insert some values
   for (int i = 0; i < num_keys; i++) {
@@ -82,7 +83,7 @@ TEST(ExtendibleHTableTest, DISABLED_InsertTest2) {
   // try to get some keys that don't exist/were not inserted
   for (int i = num_keys; i < 2 * num_keys; i++) {
     std::vector<int> res;
-    bool got_value = ht.GetValue(i, &res);
+    const bool got_value = ht.GetValue(i, &res);
     ASSERT_FALSE(got_value);
     ASSERT_EQ(0, res.size());
   }
@@ -91,7 +92,7 @@ TEST(ExtendibleHTableTest, DISABLED_InsertTest2) {
 }
 
 // NOLINTNEXTLINE
-TEST(ExtendibleHTableTest, DISABLED_RemoveTest1) {
+TEST(ExtendibleHTableTest, RemoveTest1) {
   auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
   auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
 
@@ -151,6 +152,71 @@ TEST(ExtendibleHTableTest, DISABLED_RemoveTest1) {
     bool got_value = ht.GetValue(i, &res);
     ASSERT_FALSE(got_value);
     ASSERT_EQ(0, res.size());
+  }
+
+  ht.VerifyIntegrity();
+}
+
+TEST(ExtendibleHTableTest, OrderedInsertRemoveTest) {
+  const auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
+  const auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
+
+  DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 8, 8,
+                                                      512);
+
+  constexpr int times = 10000;
+
+  for (int i = 0; i < times; ++i) {
+    std::cout << "Insert " << i << '\n';
+    bool inserted = ht.Insert(i, i);
+    ASSERT_TRUE(inserted);
+    std::vector<int> res;
+    ht.GetValue(i, &res);
+    ASSERT_EQ(1, res.size());
+    ASSERT_EQ(i, res[0]);
+  }
+
+  ht.VerifyIntegrity();
+
+  for (int i = 0; i < times; ++i) {
+    std::vector<int> res;
+    ht.GetValue(i, &res);
+    ASSERT_EQ(1, res.size());
+    ASSERT_EQ(i, res[0]);
+  }
+
+  for (int i = 0; i < times; ++i) {
+    bool removed = ht.Remove(i);
+    ASSERT_TRUE(removed);
+    std::vector<int> res;
+    ht.GetValue(i, &res);
+    ASSERT_EQ(0, res.size());
+  }
+
+  ht.VerifyIntegrity();
+}
+
+TEST(ExtendibleHTableTest, RandomInsertRemoveTest) {
+  const auto disk_mgr = std::make_unique<DiskManagerUnlimitedMemory>();
+  const auto bpm = std::make_unique<BufferPoolManager>(50, disk_mgr.get());
+
+  DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 8, 8,
+                                                      512);
+  std::random_device seed;
+  std::mt19937 engine(seed());
+  std::uniform_int_distribution dis(0, INT32_MAX);
+  constexpr uint times = 10000;
+
+  for (uint i = 0; i < times; ++i) {
+    const int random_number = dis(engine);
+    ht.Insert(random_number, random_number * 2);
+  }
+
+  ht.VerifyIntegrity();
+
+  for (uint i = 0; i < times; ++i) {
+    const int random_number = dis(engine);
+    ht.Remove(random_number);
   }
 
   ht.VerifyIntegrity();

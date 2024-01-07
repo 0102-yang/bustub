@@ -20,7 +20,10 @@
 namespace bustub {
 
 void ExtendibleHTableDirectoryPage::Init(const uint32_t max_depth) {
-  max_depth_ = max_depth;
+  max_depth_ = std::min(max_depth, static_cast<uint32_t>(HTABLE_DIRECTORY_MAX_DEPTH));
+  const auto size = MaxSize();
+  std::fill_n(std::begin(bucket_page_ids_), size, INVALID_PAGE_ID);
+  std::fill_n(std::begin(local_depths_), size, 0U);
   global_depth_ = 0;
 }
 
@@ -38,11 +41,22 @@ void ExtendibleHTableDirectoryPage::SetBucketPageId(const uint32_t bucket_idx, c
 
 auto ExtendibleHTableDirectoryPage::GetSplitImageIndex(const uint32_t bucket_idx) const -> uint32_t {
   BUSTUB_ASSERT(bucket_idx < Size(), "Out of range");
-  const uint32_t half_size = 1 << (global_depth_ - 1);
-  if (bucket_idx < half_size) {
+  if (Size() == 1U) {
+    // Only 1 bucket.
+    return bucket_idx;
   }
+  const uint32_t half_size = 1 << (global_depth_ - 1);
   return bucket_idx < half_size ? bucket_idx + half_size : bucket_idx - half_size;
 }
+
+auto ExtendibleHTableDirectoryPage::GetGlobalDepthMask() const -> uint32_t { return 1 << global_depth_; }
+
+auto ExtendibleHTableDirectoryPage::GetLocalDepthMask(const uint32_t bucket_idx) const -> uint32_t {
+  BUSTUB_ASSERT(bucket_idx < Size(), "Out of range");
+  return (1 << local_depths_[bucket_idx]) - 1U;
+}
+
+auto ExtendibleHTableDirectoryPage::GetMaxDepth() const -> uint32_t { return max_depth_; }
 
 auto ExtendibleHTableDirectoryPage::GetGlobalDepth() const -> uint32_t { return global_depth_; }
 
@@ -60,6 +74,9 @@ void ExtendibleHTableDirectoryPage::DecrGlobalDepth() {
   if (global_depth_ == 0) {
     return;
   }
+  const uint32_t half_size = Size() / 2;
+  std::fill_n(std::begin(bucket_page_ids_) + half_size, half_size, INVALID_PAGE_ID);
+  std::fill_n(std::begin(local_depths_) + half_size, half_size, 0);
   --global_depth_;
 }
 
