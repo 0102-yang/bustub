@@ -33,7 +33,7 @@ TEST(PageGuardTest, ReadSampleTest) {
   page_id_t page_id_temp;
   auto *page0 = bpm->NewPage(&page_id_temp);
 
-  const auto guarded_page = ReadPageGuard(bpm.get(), page0);
+  auto guarded_page = ReadPageGuard(bpm.get(), page0);
 
   EXPECT_EQ(page0->GetData(), guarded_page.GetData());
   EXPECT_EQ(page0->GetPageId(), guarded_page.PageId());
