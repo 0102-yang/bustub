@@ -13,6 +13,7 @@
 #include "buffer/buffer_pool_manager.h"
 
 #include "common/exception.h"
+#include "common/logger.h"
 #include "common/macros.h"
 #include "storage/page/page_guard.h"
 
@@ -74,17 +75,24 @@ auto BufferPoolManager::NewPage(page_id_t *page_id) -> Page * {
 auto BufferPoolManager::FetchPage(const page_id_t page_id, const AccessType access_type) -> Page * {
   std::lock_guard lock(latch_);
 
-  // If page is already in buffer pool,
-  // just return it.
+  /****************************
+   * Get Page from buffer pool.
+   ****************************/
   if (page_table_.count(page_id) > 0) {
-    Page *fetch_page = &pages_[page_table_.at(page_id)];
+    // If page is already in buffer pool,
+    // just return it.
+    const frame_id_t fetch_page_frame_id = page_table_.at(page_id);
+    Page *fetch_page = &pages_[fetch_page_frame_id];
     ++fetch_page->pin_count_;
+    replacer_->RecordAccess(fetch_page_frame_id, access_type);
+    replacer_->SetEvictable(fetch_page_frame_id, false);
     return fetch_page;
   }
 
-  /********************
-   * Get free frame id.
-   ********************/
+  /*********************
+   * Get Page from disk.
+   *********************/
+  // Get free frame id.
   auto free_frame_id = GetFreeFrameId();
   if (!free_frame_id) {
     // Return nullptr if page_id needs to be fetched from the disk
@@ -92,11 +100,7 @@ auto BufferPoolManager::FetchPage(const page_id_t page_id, const AccessType acce
     return nullptr;
   }
 
-  /*********************
-   * Get Page from disk.
-   *********************/
   Page *fetch_page = &pages_[*free_frame_id];
-
   auto finish_promise = DiskScheduler::CreatePromise();
   auto finish_flag = finish_promise.get_future();
   disk_scheduler_->Schedule({false, fetch_page->data_, page_id, std::move(finish_promise)});
@@ -104,6 +108,7 @@ auto BufferPoolManager::FetchPage(const page_id_t page_id, const AccessType acce
 
   // Track fetch page and record page access.
   page_table_.emplace(fetch_page->page_id_, *free_frame_id);
+  replacer_->Remove(*free_frame_id);
   replacer_->RecordAccess(*free_frame_id, access_type);
   replacer_->SetEvictable(*free_frame_id, false);
 
@@ -122,14 +127,18 @@ auto BufferPoolManager::UnpinPage(const page_id_t page_id, const bool is_dirty,
     return false;
   }
 
-  const frame_id_t page_frame = page_table_.at(page_id);
-  Page *unpin_page = &pages_[page_frame];
+  const frame_id_t unpin_page_frame_id = page_table_.at(page_id);
+  Page *unpin_page = &pages_[unpin_page_frame_id];
   if (unpin_page->pin_count_ == 0) {
     return false;
   }
-  unpin_page->is_dirty_ = is_dirty;
+
+  // Configure unpin page.
+  if (!unpin_page->is_dirty_ && is_dirty) {
+    unpin_page->is_dirty_ = is_dirty;
+  }
   if (--unpin_page->pin_count_ == 0) {
-    replacer_->SetEvictable(page_frame, true);
+    replacer_->SetEvictable(unpin_page_frame_id, true);
   }
   return true;
 }
@@ -172,7 +181,8 @@ void BufferPoolManager::FlushAllPages() {
 auto BufferPoolManager::DeletePage(const page_id_t page_id) -> bool {
   std::lock_guard lock(latch_);
 
-  if (page_table_.count(page_id) > 0) {
+  if (page_table_.count(page_id) == 0) {
+    // Page id not found.
     return true;
   }
 
@@ -201,16 +211,25 @@ auto BufferPoolManager::AllocatePage() -> page_id_t { return next_page_id_++; }
 
 auto BufferPoolManager::FetchPageRead(const page_id_t page_id) -> ReadPageGuard {
   Page *fetch_page = FetchPage(page_id);
+  LOG_DEBUG("Trying to acquire read lock of page %d.", page_id);
+  fetch_page->RLatch();
+  LOG_DEBUG("Acquire read lock of page %d successfully.", page_id);
   return {this, fetch_page};
 }
 
 auto BufferPoolManager::FetchPageWrite(const page_id_t page_id) -> WritePageGuard {
   Page *fetch_page = FetchPage(page_id);
+  LOG_DEBUG("Trying to acquire write lock of page %d.", page_id);
+  fetch_page->WLatch();
+  LOG_DEBUG("Acquire write lock of page %d successfully.", page_id);
   return {this, fetch_page};
 }
 
 auto BufferPoolManager::NewPageGuarded(page_id_t *page_id) -> WritePageGuard {
   Page *new_page = NewPage(page_id);
+  LOG_DEBUG("Trying to acquire write lock of page %d.", *page_id);
+  new_page->WLatch();
+  LOG_DEBUG("Acquire write lock of page %d successfully.", *page_id);
   return {this, new_page};
 }
 

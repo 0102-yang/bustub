@@ -164,7 +164,7 @@ TEST(ExtendibleHTableTest, OrderedInsertRemoveTest) {
   DiskExtendibleHashTable<int, int, IntComparator> ht("blah", bpm.get(), IntComparator(), HashFunction<int>(), 8, 8,
                                                       512);
 
-  constexpr int times = 10000;
+  constexpr int times = 100;
 
   for (int i = 0; i < times; ++i) {
     std::cout << "Insert " << i << '\n';

@@ -42,8 +42,14 @@ DiskExtendibleHashTable<K, V, KC>::DiskExtendibleHashTable(const std::string &na
       header_max_depth_(header_max_depth),
       directory_max_depth_(directory_max_depth),
       bucket_max_size_(bucket_max_size) {
-  const auto header_page = bpm->NewPageGuarded(&header_page_id_).AsMut<ExtendibleHTableHeaderPage>();
-  header_page->Init(header_max_depth);
+  LOG_INFO(
+      "Create new disk extendible hash table with name %s, header max depth %u, directory max depth %u bucket max size "
+      "%u.",
+      name.c_str(), header_max_depth, directory_max_depth, bucket_max_size);
+  auto header_guard = bpm->NewPageGuarded(&header_page_id_);
+  LOG_DEBUG("Create new header page %d.", header_page_id_);
+  const auto header = header_guard.AsMut<ExtendibleHTableHeaderPage>();
+  header->Init(header_max_depth);
 }
 
 /*****************************************************************************
@@ -54,16 +60,19 @@ auto DiskExtendibleHashTable<K, V, KC>::GetValue(const K &key, std::vector<V> *r
     -> bool {
   // Get bucket.
   // Get header page.
-  const auto header = bpm_->FetchPageRead(header_page_id_).As<ExtendibleHTableHeaderPage>();
+  auto header_guard = bpm_->FetchPageRead(header_page_id_);
+  const auto header = header_guard.As<ExtendibleHTableHeaderPage>();
+  const auto key_hash = Hash(key);
+  LOG_DEBUG("Trying to find the specified key %u ......", key_hash);
 
   // Get directory page.
-  const auto key_hash = Hash(key);
   const auto directory_idx = header->HashToDirectoryIndex(key_hash);
   const page_id_t directory_page_id = header->GetDirectoryPageId(directory_idx);
   if (directory_page_id == INVALID_PAGE_ID) {
     return false;
   }
-  auto directory = bpm_->FetchPageRead(directory_page_id).As<ExtendibleHTableDirectoryPage>();
+  auto directory_guard = bpm_->FetchPageRead(directory_page_id);
+  auto directory = directory_guard.As<ExtendibleHTableDirectoryPage>();
 
   // Get bucket page.
   const auto bucket_idx = directory->HashToBucketIndex(key_hash);
@@ -73,13 +82,15 @@ auto DiskExtendibleHashTable<K, V, KC>::GetValue(const K &key, std::vector<V> *r
   }
 
   // Get value.
-  auto bucket = bpm_->FetchPageRead(bucket_page_id).As<ExtendibleHTableBucketPage<K, V, KC>>();
+  auto bucket_guard = bpm_->FetchPageRead(bucket_page_id);
+  auto bucket = bucket_guard.As<ExtendibleHTableBucketPage<K, V, KC>>();
   if (V value; bucket->Lookup(key, value, cmp_)) {
-    LOG_DEBUG("Find %u in the bucket %u of the directory %u", key_hash, bucket_page_id, directory_page_id);
+    LOG_DEBUG("Succeeded in finding the specified key %u from the bucket %d of the directory %d.", key_hash,
+              bucket_page_id, directory_page_id);
     result->emplace_back(value);
     return true;
   }
-  LOG_DEBUG("No corresponding key %u was found in the bucket %u of the directory %u", key_hash, bucket_page_id,
+  LOG_DEBUG("No corresponding key %u was found in the bucket %d of the directory %d.", key_hash, bucket_page_id,
             directory_page_id);
   return false;
 }
@@ -90,24 +101,28 @@ auto DiskExtendibleHashTable<K, V, KC>::GetValue(const K &key, std::vector<V> *r
 
 template <typename K, typename V, typename KC>
 auto DiskExtendibleHashTable<K, V, KC>::Insert(const K &key, const V &value, Transaction *transaction) -> bool {
-  const auto header = bpm_->FetchPageWrite(header_page_id_).AsMut<ExtendibleHTableHeaderPage>();
+  auto header_guard = bpm_->FetchPageWrite(header_page_id_);
+  const auto header = header_guard.AsMut<ExtendibleHTableHeaderPage>();
   const uint32_t key_hash = Hash(key);
+  LOG_DEBUG("Trying to insert key %u ......", key_hash);
   return InsertToNewDirectory(header, key_hash, key, value);
 }
 
 template <typename K, typename V, typename KC>
 auto DiskExtendibleHashTable<K, V, KC>::InsertToNewDirectory(ExtendibleHTableHeaderPage *header, const uint32_t hash,
                                                              const K &key, const V &value) -> bool {
-  const auto directory_idx = header->HashToDirectoryIndex(hash);
-  page_id_t directory_page_id = header->GetDirectoryPageId(directory_idx);
+  const uint32_t directory_idx = header->HashToDirectoryIndex(hash);
+  page_id_t directory_page_id = static_cast<page_id_t>(header->GetDirectoryPageId(directory_idx));
   if (directory_page_id == INVALID_PAGE_ID) {
     // Create new directory.
-    const auto new_directory = bpm_->NewPageGuarded(&directory_page_id).AsMut<ExtendibleHTableDirectoryPage>();
+    auto new_directory_guard = bpm_->NewPageGuarded(&directory_page_id);
+    LOG_DEBUG("Create new directory page %d.", directory_page_id);
+    const auto new_directory = new_directory_guard.AsMut<ExtendibleHTableDirectoryPage>();
     new_directory->Init(directory_max_depth_);
     header->SetDirectoryPageId(directory_idx, directory_page_id);
   }
-  const auto directory = bpm_->FetchPageWrite(directory_page_id).AsMut<ExtendibleHTableDirectoryPage>();
-  LOG_DEBUG("Insert key %u into directory %u", hash, directory_page_id);
+  auto directory_guard = bpm_->FetchPageWrite(directory_page_id);
+  const auto directory = directory_guard.AsMut<ExtendibleHTableDirectoryPage>();
   return InsertToNewBucket(directory, hash, key, value);
 }
 
@@ -118,13 +133,16 @@ auto DiskExtendibleHashTable<K, V, KC>::InsertToNewBucket(ExtendibleHTableDirect
   page_id_t bucket_page_id = directory->GetBucketPageId(bucket_idx);
   // Create new bucket.
   if (bucket_page_id == INVALID_PAGE_ID) {
-    const auto new_bucket = bpm_->NewPageGuarded(&bucket_page_id).AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
+    auto new_bucket_guard = bpm_->NewPageGuarded(&bucket_page_id);
+    LOG_DEBUG("Create new bucket page %d.", bucket_page_id);
+    const auto new_bucket = new_bucket_guard.AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
     new_bucket->Init(bucket_max_size_);
     directory->SetBucketPageId(bucket_idx, bucket_page_id);
     directory->SetLocalDepth(bucket_idx, 0U);
   }
 
-  auto bucket = bpm_->FetchPageWrite(bucket_page_id).AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
+  auto bucket_guard = bpm_->FetchPageWrite(bucket_page_id);
+  auto bucket = bucket_guard.AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
 
   /** Split bucket. */
   bool is_split = false;
@@ -147,25 +165,28 @@ auto DiskExtendibleHashTable<K, V, KC>::InsertToNewBucket(ExtendibleHTableDirect
 
     // Create new bucket.
     page_id_t new_bucket_page_id;
-    auto new_bucket = bpm_->NewPageGuarded(&new_bucket_page_id).AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
+    auto new_bucket_guard = bpm_->NewPageGuarded(&new_bucket_page_id);
+    auto new_bucket = new_bucket_guard.AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
     new_bucket->Init(bucket_max_size_);
 
     // Update mapping.
     const auto new_bucket_idx = directory->GetSplitImageIndex(bucket_idx);
     const auto new_depth_mask = old_depth_mask + (1 << (local_depth - 1));
     UpdateDirectoryPageIdMapping(directory, new_bucket_idx, new_bucket_page_id, new_depth_mask);
-    UpdateDirectoryLocalDepthMapping(directory, new_bucket_idx, local_depth, new_depth_mask);
 
     // Migrate entries.
+    LOG_DEBUG("Migrate keys from bucket %u to new bucket %u.", bucket_page_id, new_bucket_page_id);
     MigrateEntries(bucket, new_bucket, new_bucket_idx, new_depth_mask);
     is_split = true;
   }
   if (is_split) {
+    bucket_guard.Drop();
+    LOG_DEBUG("Reinsert key %u.", hash);
     return InsertToNewBucket(directory, hash, key, value);
   }
   auto insert_success = bucket->Insert(key, value, cmp_);
   if (insert_success) {
-    LOG_DEBUG("Insert key %u into bucket %u", hash, bucket_page_id);
+    LOG_DEBUG("Insert key %u into bucket %u success!", hash, bucket_page_id);
   }
   return insert_success;
 }
@@ -176,7 +197,8 @@ auto DiskExtendibleHashTable<K, V, KC>::InsertToNewBucket(ExtendibleHTableDirect
 template <typename K, typename V, typename KC>
 auto DiskExtendibleHashTable<K, V, KC>::Remove(const K &key, Transaction *transaction) -> bool {
   // Get header page.
-  const auto header = bpm_->FetchPageRead(header_page_id_).As<ExtendibleHTableHeaderPage>();
+  auto header_guard = bpm_->FetchPageWrite(header_page_id_);
+  const auto header = header_guard.AsMut<ExtendibleHTableHeaderPage>();
 
   // Get directory page.
   const auto key_hash = Hash(key);
@@ -185,7 +207,8 @@ auto DiskExtendibleHashTable<K, V, KC>::Remove(const K &key, Transaction *transa
   if (directory_page_id == INVALID_PAGE_ID) {
     return false;
   }
-  auto directory = bpm_->FetchPageWrite(directory_page_id).AsMut<ExtendibleHTableDirectoryPage>();
+  auto directory_guard = bpm_->FetchPageWrite(directory_page_id);
+  auto directory = directory_guard.AsMut<ExtendibleHTableDirectoryPage>();
 
   // Get bucket page.
   const auto bucket_idx = directory->HashToBucketIndex(key_hash);
@@ -195,29 +218,34 @@ auto DiskExtendibleHashTable<K, V, KC>::Remove(const K &key, Transaction *transa
   }
 
   // Remove key.
-  auto bucket = bpm_->FetchPageWrite(bucket_page_id).AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
+  auto bucket_guard = bpm_->FetchPageWrite(bucket_page_id);
+  auto bucket = bucket_guard.AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
   auto is_removed = bucket->Remove(key, cmp_);
   if (is_removed) {
-    LOG_DEBUG("Remove %u at bucket page %d", key_hash, bucket_page_id);
+    LOG_DEBUG("Remove key %u at bucket page %d.", key_hash, bucket_page_id);
+  } else {
+    LOG_DEBUG("Remove key %u at bucket page %d fail.", key_hash, bucket_page_id);
   }
   if (is_removed && bucket->IsEmpty()) {
     // Delete bucket page.
     bpm_->DeletePage(bucket_page_id);
+    LOG_DEBUG("Delete bucket page %d from directory %d", bucket_page_id, directory_page_id);
+
     // Update directory.
     const auto merged_bucket_idx = directory->GetSplitImageIndex(bucket_idx);
     if (merged_bucket_idx == bucket_idx) {
       // The last bucket in this directory is about to be deleted.
       // Directly delete directory page.
-      LOG_DEBUG("Delete page %d at directory %d", bucket_page_id, directory_page_id);
-      auto writeable_header = bpm_->FetchPageWrite(header_page_id_).AsMut<ExtendibleHTableHeaderPage>();
-      writeable_header->SetDirectoryPageId(directory_idx, INVALID_PAGE_ID);
+      header->SetDirectoryPageId(directory_idx, INVALID_PAGE_ID);
       bpm_->DeletePage(directory_page_id);
+      LOG_DEBUG("Delete directory page %d from header %d", directory_page_id, header_page_id_);
     } else {
       const auto merged_bucket_page_id = directory->GetBucketPageId(merged_bucket_idx);
       const uint8_t merged_bucket_local_depth = static_cast<uint8_t>(directory->GetLocalDepth(bucket_idx) - 1);
       const uint32_t new_local_depth_mask = (directory->GetLocalDepthMask(bucket_idx)) >> 1;
       UpdateDirectoryPageIdMapping(directory, merged_bucket_idx, merged_bucket_page_id, new_local_depth_mask);
-      UpdateDirectoryLocalDepthMapping(directory, merged_bucket_idx, merged_bucket_local_depth, new_local_depth_mask);
+      UpdateDirectoryLocalDepthMapping(directory, merged_bucket_idx, merged_bucket_local_depth,
+                                       new_local_depth_mask);
 
       // If directory can be shrunk, shrink it.
       if (directory->CanShrink()) {

@@ -124,7 +124,7 @@ class DiskExtendibleHashTable {
                       ExtendibleHTableBucketPage<K, V, KC> *new_bucket, uint32_t new_bucket_idx, uint32_t local_depth_mask);
 
   // member variables
-  std::string index_name_;
+  const std::string index_name_;
   BufferPoolManager *bpm_;
   KC cmp_;
   HashFunction<K> hash_fn_;
