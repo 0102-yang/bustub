@@ -110,8 +110,8 @@ if(NOT DEFINED BUSTUB_SANITIZER)
         set(BUSTUB_SANITIZER address)
 endif()
 
-message("Build mode: ${CMAKE_BUILD_TYPE}")
-message("${BUSTUB_SANITIZER} sanitizer will be enabled in debug mode.")
+message(STATUS "Build mode: ${CMAKE_BUILD_TYPE}")
+message(STATUS "${BUSTUB_SANITIZER} sanitizer will be enabled in debug mode.")
 
 # Compiler flags.
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Werror")
