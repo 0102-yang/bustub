@@ -14,18 +14,15 @@ void FilterExecutor::Init() {
 }
 
 auto FilterExecutor::Next(Tuple *tuple, RID *rid) -> bool {
-  auto filter_expr = plan_->GetPredicate();
+  const auto filter_expr = plan_->GetPredicate();
 
   while (true) {
     // Get the next tuple
-    const auto status = child_executor_->Next(tuple, rid);
-
-    if (!status) {
+    if (const auto status = child_executor_->Next(tuple, rid); !status) {
       return false;
     }
 
-    auto value = filter_expr->Evaluate(tuple, child_executor_->GetOutputSchema());
-    if (!value.IsNull() && value.GetAs<bool>()) {
+    if (auto value = filter_expr->Evaluate(tuple, child_executor_->GetOutputSchema()); !value.IsNull() && value.GetAs<bool>()) {
       return true;
     }
   }

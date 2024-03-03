@@ -16,9 +16,7 @@ auto ProjectionExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   Tuple child_tuple{};
 
   // Get the next tuple
-  const auto status = child_executor_->Next(&child_tuple, rid);
-
-  if (!status) {
+  if (const auto status = child_executor_->Next(&child_tuple, rid); !status) {
     return false;
   }
 
