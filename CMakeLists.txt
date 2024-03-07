@@ -20,6 +20,13 @@ if(EMSCRIPTEN)
         add_link_options(-fexceptions)
 endif()
 
+if(ENABLE_TRACE_DEBUG)
+    message(STATUS "Enable trace log level.")
+    add_compile_definitions(LOG_LEVEL=LOG_LEVEL_TRACE)
+else()
+    message(STATUS "Disable trace log level.")
+endif()
+
 # People keep running CMake in the wrong folder, completely nuking their project or creating weird bugs.
 # This checks if you're running CMake from a folder that already has CMakeLists.txt.
 # Importantly, this catches the common case of running it from the root directory.

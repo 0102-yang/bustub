@@ -35,6 +35,17 @@
         "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_BUILD_TYPE": "Debug"
       }
+    },
+    {
+      "name": "linux-gcc-trace-debug",
+      "displayName": "Linux GCC Trace Debug",
+      "inherits": "linux-gcc-debug",
+      "cacheVariables": {
+        "ENABLE_TRACE_DEBUG": {
+          "type": "BOOL",
+          "value": true
+        }
+      }
     }
   ],
   "version": 6
