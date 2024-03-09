@@ -33,7 +33,7 @@ static char *buffer_used;
 DiskManager::DiskManager(const std::string &db_file) : file_name_(db_file) {
   std::string::size_type n = file_name_.rfind('.');
   if (n == std::string::npos) {
-    LOG_DEBUG("wrong file format");
+    LOG_TRACE("wrong file format");
     return;
   }
   log_name_ = file_name_.substr(0, n) + ".log";
@@ -86,7 +86,7 @@ void DiskManager::WritePage(page_id_t page_id, const char *page_data) {
   db_io_.write(page_data, BUSTUB_PAGE_SIZE);
   // check for I/O error
   if (db_io_.bad()) {
-    LOG_DEBUG("I/O error while writing");
+    LOG_TRACE("I/O error while writing");
     return;
   }
   // needs to flush to keep disk file in sync
@@ -101,20 +101,20 @@ void DiskManager::ReadPage(page_id_t page_id, char *page_data) {
   int offset = page_id * BUSTUB_PAGE_SIZE;
   // check if read beyond file length
   if (offset > GetFileSize(file_name_)) {
-    LOG_DEBUG("I/O error reading past end of file");
+    LOG_TRACE("I/O error reading past end of file");
     // std::cerr << "I/O error while reading" << std::endl;
   } else {
     // set read cursor to offset
     db_io_.seekp(offset);
     db_io_.read(page_data, BUSTUB_PAGE_SIZE);
     if (db_io_.bad()) {
-      LOG_DEBUG("I/O error while reading");
+      LOG_TRACE("I/O error while reading");
       return;
     }
     // if file ends before reading BUSTUB_PAGE_SIZE
     int read_count = db_io_.gcount();
     if (read_count < BUSTUB_PAGE_SIZE) {
-      LOG_DEBUG("Read less than a page");
+      LOG_TRACE("Read less than a page");
       db_io_.clear();
       // std::cerr << "Read less than a page" << std::endl;
       memset(page_data + read_count, 0, BUSTUB_PAGE_SIZE - read_count);
@@ -148,7 +148,7 @@ void DiskManager::WriteLog(char *log_data, int size) {
 
   // check for I/O error
   if (log_io_.bad()) {
-    LOG_DEBUG("I/O error while writing log");
+    LOG_TRACE("I/O error while writing log");
     return;
   }
   // needs to flush to keep disk file in sync
@@ -163,15 +163,15 @@ void DiskManager::WriteLog(char *log_data, int size) {
  */
 auto DiskManager::ReadLog(char *log_data, int size, int offset) -> bool {
   if (offset >= GetFileSize(log_name_)) {
-    // LOG_DEBUG("end of log file");
-    // LOG_DEBUG("file size is %d", GetFileSize(log_name_));
+    // LOG_TRACE("end of log file");
+    // LOG_TRACE("file size is %d", GetFileSize(log_name_));
     return false;
   }
   log_io_.seekp(offset);
   log_io_.read(log_data, size);
 
   if (log_io_.bad()) {
-    LOG_DEBUG("I/O error while reading log");
+    LOG_TRACE("I/O error while reading log");
     return false;
   }
   // if log file ends before reading "size"

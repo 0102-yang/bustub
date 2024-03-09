@@ -44,7 +44,7 @@ auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & 
 void ReadPageGuard::Drop() {
   if (guard_.bpm_ && guard_.page_) {
     guard_.page_->RUnlatch();
-    LOG_DEBUG("Release read lock of page %d successfully.", PageId());
+    LOG_TRACE("Release read lock of page %d successfully.", PageId());
     guard_.Drop();
   }
 }
@@ -63,7 +63,7 @@ auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard
 void WritePageGuard::Drop() {
   if (guard_.bpm_ && guard_.page_) {
     guard_.page_->WUnlatch();
-    LOG_DEBUG("Release write lock of page %d successfully.", PageId());
+    LOG_TRACE("Release write lock of page %d successfully.", PageId());
     guard_.Drop();
   }
 }
