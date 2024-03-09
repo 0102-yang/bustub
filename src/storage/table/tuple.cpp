@@ -21,7 +21,7 @@
 namespace bustub {
 
 // TODO(Amadou): It does not look like nulls are supported. Add a null bitmap?
-Tuple::Tuple(std::vector<Value> values, const Schema *schema) {
+Tuple::Tuple(const std::vector<Value> &values, const Schema *schema) {
   assert(values.size() == schema->GetColumnCount());
 
   // 1. Calculate the size of the tuple.
@@ -39,12 +39,11 @@ Tuple::Tuple(std::vector<Value> values, const Schema *schema) {
   std::fill(data_.begin(), data_.end(), 0);
 
   // 3. Serialize each attribute based on the input value.
-  uint32_t column_count = schema->GetColumnCount();
+  const uint32_t column_count = schema->GetColumnCount();
   uint32_t offset = schema->GetLength();
 
   for (uint32_t i = 0; i < column_count; i++) {
-    const auto &col = schema->GetColumn(i);
-    if (!col.IsInlined()) {
+    if (const auto &col = schema->GetColumn(i); !col.IsInlined()) {
       // Serialize relative offset, where the actual varchar data is stored.
       *reinterpret_cast<uint32_t *>(data_.data() + col.GetOffset()) = offset;
       // Serialize varchar value, in place (size+data).
@@ -68,11 +67,11 @@ auto Tuple::GetValue(const Schema *schema, const uint32_t column_idx) const -> V
   return Value::DeserializeFrom(data_ptr, column_type);
 }
 
-auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema, const std::vector<uint32_t> &key_attrs)
-    -> Tuple {
+auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema, const std::vector<uint32_t> &key_attrs) const
+  -> Tuple {
   std::vector<Value> values;
   values.reserve(key_attrs.size());
-  for (auto idx : key_attrs) {
+  for (const auto idx : key_attrs) {
     values.emplace_back(this->GetValue(&schema, idx));
   }
   return {values, &key_schema};
@@ -81,13 +80,12 @@ auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema, const s
 auto Tuple::GetDataPtr(const Schema *schema, const uint32_t column_idx) const -> const char * {
   assert(schema);
   const auto &col = schema->GetColumn(column_idx);
-  bool is_inlined = col.IsInlined();
   // For inline type, data is stored where it is.
-  if (is_inlined) {
+  if (const bool is_inlined = col.IsInlined(); is_inlined) {
     return (data_.data() + col.GetOffset());
   }
   // We read the relative offset from the tuple data.
-  int32_t offset = *reinterpret_cast<const int32_t *>(data_.data() + col.GetOffset());
+  const int32_t offset = *reinterpret_cast<const int32_t *>(data_.data() + col.GetOffset());
   // And return the beginning address of the real data for the VARCHAR type.
   return (data_.data() + offset);
 }
@@ -95,10 +93,10 @@ auto Tuple::GetDataPtr(const Schema *schema, const uint32_t column_idx) const ->
 auto Tuple::ToString(const Schema *schema) const -> std::string {
   std::stringstream os;
 
-  int column_count = schema->GetColumnCount();
+  const uint32_t column_count = schema->GetColumnCount();
   bool first = true;
   os << "(";
-  for (int column_itr = 0; column_itr < column_count; column_itr++) {
+  for (uint32_t column_itr = 0; column_itr < column_count; column_itr++) {
     if (first) {
       first = false;
     } else {
@@ -117,13 +115,13 @@ auto Tuple::ToString(const Schema *schema) const -> std::string {
 }
 
 void Tuple::SerializeTo(char *storage) const {
-  int32_t sz = data_.size();
-  memcpy(storage, &sz, sizeof(int32_t));
-  memcpy(storage + sizeof(int32_t), data_.data(), sz);
+  const size_t size = data_.size();
+  memcpy(storage, &size, sizeof(size_t));
+  memcpy(storage + sizeof(size_t), data_.data(), size);
 }
 
 void Tuple::DeserializeFrom(const char *storage) {
-  uint32_t size = *reinterpret_cast<const uint32_t *>(storage);
+  const uint32_t size = *reinterpret_cast<const uint32_t *>(storage);
   this->data_.resize(size);
   memcpy(this->data_.data(), storage + sizeof(int32_t), size);
 }

@@ -23,7 +23,7 @@
 namespace bustub {
 
 using timestamp_t = int64_t;
-const timestamp_t INVALID_TS = -1;
+constexpr timestamp_t INVALID_TS = -1;
 
 static constexpr size_t TUPLE_META_SIZE = 16;
 
@@ -57,13 +57,15 @@ class Tuple {
   // Default constructor (to create a dummy tuple)
   Tuple() = default;
 
+  ~Tuple() = default;
+
   // constructor for table heap tuple
-  explicit Tuple(RID rid) : rid_(rid) {}
+  explicit Tuple(const RID rid) : rid_(rid) {}
 
   static auto Empty() -> Tuple { return Tuple{RID{INVALID_PAGE_ID, 0}}; }
 
   // constructor for creating a new tuple based on input value
-  Tuple(std::vector<Value> values, const Schema *schema);
+  Tuple(const std::vector<Value> &values, const Schema *schema);
 
   Tuple(const Tuple &other) = default;
 
@@ -83,33 +85,34 @@ class Tuple {
   void DeserializeFrom(const char *storage);
 
   // return RID of current tuple
-  inline auto GetRid() const -> RID { return rid_; }
+  [[nodiscard]] auto GetRid() const -> RID { return rid_; }
 
   // return RID of current tuple
-  inline auto SetRid(RID rid) { rid_ = rid; }
+  auto SetRid(const RID rid) { rid_ = rid; }
 
   // Get the address of this tuple in the table's backing store
-  inline auto GetData() const -> const char * { return data_.data(); }
+  [[nodiscard]] auto GetData() const -> const char * { return data_.data(); }
 
   // Get length of the tuple, including varchar length
-  inline auto GetLength() const -> uint32_t { return data_.size(); }
+  [[nodiscard]] auto GetLength() const -> uint32_t { return data_.size(); }
 
   // Get the value of a specified column (const)
-  // checks the schema to see how to return the Value.
+  // checks the schema_ to see how to return the Value.
   auto GetValue(const Schema *schema, uint32_t column_idx) const -> Value;
 
   // Generates a key tuple given schemas and attributes
-  auto KeyFromTuple(const Schema &schema, const Schema &key_schema, const std::vector<uint32_t> &key_attrs) -> Tuple;
+  [[nodiscard]] auto KeyFromTuple(const Schema &schema, const Schema &key_schema,
+                                  const std::vector<uint32_t> &key_attrs) const -> Tuple;
 
   // Is the column value null ?
-  inline auto IsNull(const Schema *schema, uint32_t column_idx) const -> bool {
-    Value value = GetValue(schema, column_idx);
+  auto IsNull(const Schema *schema, const uint32_t column_idx) const -> bool {
+    const Value value = GetValue(schema, column_idx);
     return value.IsNull();
   }
 
   auto ToString(const Schema *schema) const -> std::string;
 
-  friend inline auto IsTupleContentEqual(const Tuple &a, const Tuple &b) { return a.data_ == b.data_; }
+  friend auto IsTupleContentEqual(const Tuple &a, const Tuple &b) { return a.data_ == b.data_; }
 
  private:
   // Get the starting storage address of specific column
