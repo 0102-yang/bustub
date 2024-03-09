@@ -13,7 +13,6 @@
 #pragma once
 
 #include <string>
-#include "type/abstract_pool.h"
 #include "type/value.h"
 
 namespace bustub {
@@ -26,21 +25,21 @@ class TimestampType : public Type {
   TimestampType();
 
   // Comparison functions
-  auto CompareEquals(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareNotEquals(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareLessThan(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareLessThanEquals(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareGreaterThan(const Value &left, const Value &right) const -> CmpBool override;
-  auto CompareGreaterThanEquals(const Value &left, const Value &right) const -> CmpBool override;
+  [[nodiscard]] auto CompareEquals(const Value &left, const Value &right) const -> CmpBool override;
+  [[nodiscard]] auto CompareNotEquals(const Value &left, const Value &right) const -> CmpBool override;
+  [[nodiscard]] auto CompareLessThan(const Value &left, const Value &right) const -> CmpBool override;
+  [[nodiscard]] auto CompareLessThanEquals(const Value &left, const Value &right) const -> CmpBool override;
+  [[nodiscard]] auto CompareGreaterThan(const Value &left, const Value &right) const -> CmpBool override;
+  [[nodiscard]] auto CompareGreaterThanEquals(const Value &left, const Value &right) const -> CmpBool override;
 
   // Other mathematical functions
-  auto Min(const Value &left, const Value &right) const -> Value override;
-  auto Max(const Value &left, const Value &right) const -> Value override;
+  [[nodiscard]] auto Min(const Value &left, const Value &right) const -> Value override;
+  [[nodiscard]] auto Max(const Value &left, const Value &right) const -> Value override;
 
-  auto IsInlined(const Value &val) const -> bool override { return true; }
+  [[nodiscard]] auto IsInlined(const Value &val) const -> bool override { return true; }
 
   // Debug
-  auto ToString(const Value &val) const -> std::string override;
+  [[nodiscard]] auto ToString(const Value &val) const -> std::string override;
 
   // Serialize this value into the given storage space
   void SerializeTo(const Value &val, char *storage) const override;
@@ -49,9 +48,9 @@ class TimestampType : public Type {
   auto DeserializeFrom(const char *storage) const -> Value override;
 
   // Create a copy of this value
-  auto Copy(const Value &val) const -> Value override;
+  [[nodiscard]] auto Copy(const Value &val) const -> Value override;
 
-  auto CastAs(const Value &val, TypeId type_id) const -> Value override;
+  [[nodiscard]] auto CastAs(const Value &val, TypeId type_id) const -> Value override;
 };
 
 }  // namespace bustub

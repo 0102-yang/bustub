@@ -19,7 +19,7 @@
 
 namespace bustub {
 
-TimestampType::TimestampType() : Type(TypeId::TIMESTAMP) {}
+TimestampType::TimestampType() : Type(TIMESTAMP) {}
 
 auto TimestampType::CompareEquals(const Value &left, const Value &right) const -> CmpBool {
   assert(left.CheckComparable(right));
@@ -96,29 +96,31 @@ auto TimestampType::ToString(const Value &val) const -> std::string {
   if (val.IsNull()) {
     return "timestamp_null";
   }
-  uint64_t tm = val.value_.timestamp_;
-  auto micro = static_cast<uint32_t>(tm % 1000000);
-  tm /= 1000000;
-  auto second = static_cast<uint32_t>(tm % 100000);
-  auto sec = static_cast<uint16_t>(second % 60);
+
+  uint64_t timestamp = val.value_.timestamp_;
+  const auto micro = static_cast<uint32_t>(timestamp % 1000000);
+  timestamp /= 1000000;
+  auto second = static_cast<uint32_t>(timestamp % 100000);
+  const auto sec = static_cast<uint16_t>(second % 60);
   second /= 60;
-  auto min = static_cast<uint16_t>(second % 60);
+  const auto min = static_cast<uint16_t>(second % 60);
   second /= 60;
-  auto hour = static_cast<uint16_t>(second % 24);
-  tm /= 100000;
-  auto year = static_cast<uint16_t>(tm % 10000);
-  tm /= 10000;
-  auto tz = static_cast<int>(tm % 27);
+  const auto hour = static_cast<uint16_t>(second % 24);
+  timestamp /= 100000;
+  const auto year = static_cast<uint16_t>(timestamp % 10000);
+  timestamp /= 10000;
+  auto tz = static_cast<int>(timestamp % 27);
   tz -= 12;
-  tm /= 27;
-  auto day = static_cast<uint16_t>(tm % 32);
-  tm /= 32;
-  auto month = static_cast<uint16_t>(tm);
-  const size_t date_str_len = 30;
-  const size_t zone_len = 5;
+  timestamp /= 27;
+  const auto day = static_cast<uint16_t>(timestamp % 32);
+  timestamp /= 32;
+  const auto month = static_cast<uint16_t>(timestamp);
+
+  constexpr size_t date_str_len = 30;
+  constexpr size_t zone_len = 11;
   char str[date_str_len];
   char zone[zone_len];
-  snprintf(str, date_str_len, "%04d-%02d-%02d %02d:%02d:%02d.%06d", year, month, day, hour, min, sec, micro);
+  snprintf(str, date_str_len, "%04d-%02d-%02d %02d:%02d:%02d.%06d", year, month, day, hour, min, sec, micro);  // NOLINT
   if (tz >= 0) {
     str[26] = '+';
   } else {
@@ -146,10 +148,10 @@ auto TimestampType::DeserializeFrom(const char *storage) const -> Value {
 auto TimestampType::Copy(const Value &val) const -> Value { return {val}; }
 
 auto TimestampType::CastAs(const Value &val, const TypeId type_id) const -> Value {
-  switch (type_id) {
-    case TypeId::TIMESTAMP:
+  switch (type_id) { // NOLINT
+    case TIMESTAMP:
       return Copy(val);
-    case TypeId::VARCHAR:
+    case VARCHAR:
       if (val.IsNull()) {
         return ValueFactory::GetVarcharValue(nullptr, false);
       }
@@ -157,7 +159,7 @@ auto TimestampType::CastAs(const Value &val, const TypeId type_id) const -> Valu
     default:
       break;
   }
-  throw Exception("TIMESTAMP is not coercable to " + Type::GetInstance(type_id)->ToString(val));
+  throw Exception("TIMESTAMP is not coercible to " + GetInstance(type_id)->ToString(val));
 }
 
 }  // namespace bustub
