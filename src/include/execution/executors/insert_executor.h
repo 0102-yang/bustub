@@ -13,9 +13,7 @@
 #pragma once
 
 #include <memory>
-#include <utility>
 
-#include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/insert_plan.h"
 #include "storage/table/tuple.h"
@@ -26,7 +24,7 @@ namespace bustub {
  * InsertExecutor executes an insert on a table.
  * Inserted values are always pulled from a child executor.
  */
-class InsertExecutor : public AbstractExecutor {
+class InsertExecutor final : public AbstractExecutor {
  public:
   /**
    * Construct a new InsertExecutor instance.
@@ -49,14 +47,18 @@ class InsertExecutor : public AbstractExecutor {
    * NOTE: InsertExecutor::Next() does not use the `rid` out-parameter.
    * NOTE: InsertExecutor::Next() returns true with number of inserted rows produced only once.
    */
-  auto Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool override;
 
   /** @return The output schema for the insert */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+  [[nodiscard]] auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
  private:
   /** The insert plan node to be executed*/
   const InsertPlanNode *plan_;
+
+  std::unique_ptr<AbstractExecutor> child_executor_;
+
+  bool is_insertion_finish_ = false;
 };
 
 }  // namespace bustub

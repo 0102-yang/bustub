@@ -599,7 +599,7 @@ static auto ResolveColumnRefFromSchema(const Schema &schema, const std::vector<s
   for (const auto &column : schema.GetColumns()) {
     if (StringUtil::Lower(column.GetName()) == col_name[0]) {
       if (column_ref != nullptr) {
-        throw Exception(fmt::format("{} is ambiguous in schema", fmt::join(col_name, ".")));
+        throw Exception(fmt::format("{} is ambiguous in schema_", fmt::join(col_name, ".")));
       }
       column_ref = std::make_unique<BoundColumnRef>(std::vector{column.GetName()});
     }
@@ -614,7 +614,7 @@ auto Binder::ResolveColumnRefFromBaseTableRef(const BoundBaseTableRef &table_ref
                                               const std::vector<std::string> &col_name)
     -> std::unique_ptr<BoundColumnRef> {
   auto bound_table_name = table_ref.GetBoundTableName();
-  // Firstly, try directly resolve the column name through schema
+  // Firstly, try directly resolve the column name through schema_
   std::unique_ptr<BoundColumnRef> direct_resolved_expr =
       BoundColumnRef::Prepend(ResolveColumnRefFromSchema(table_ref.schema_, col_name), bound_table_name);
 
@@ -670,7 +670,7 @@ auto Binder::ResolveColumnRefFromSelectList(const std::vector<std::vector<std::s
 auto Binder::ResolveColumnRefFromSubqueryRef(const BoundSubqueryRef &subquery_ref, const std::string &alias,
                                              const std::vector<std::string> &col_name)
     -> std::unique_ptr<BoundColumnRef> {
-  // Firstly, try directly resolve the column name through schema
+  // Firstly, try directly resolve the column name through schema_
   std::unique_ptr<BoundColumnRef> direct_resolved_expr = BoundColumnRef::Prepend(
       ResolveColumnRefFromSelectList(subquery_ref.select_list_name_, col_name), subquery_ref.alias_);
 
@@ -880,7 +880,7 @@ auto Binder::BindExplain(duckdb_libpgquery::PGExplainStmt *stmt) -> std::unique_
       if (strcmp(temp->defname, "optimizer") == 0 || strcmp(temp->defname, "o") == 0) {
         explain_options |= ExplainOptions::OPTIMIZER;
       }
-      if (strcmp(temp->defname, "schema") == 0 || strcmp(temp->defname, "s") == 0) {
+      if (strcmp(temp->defname, "schema_") == 0 || strcmp(temp->defname, "s") == 0) {
         explain_options |= ExplainOptions::SCHEMA;
       }
     }

@@ -14,13 +14,10 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 
-#include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/update_plan.h"
 #include "storage/table/tuple.h"
-#include "type/value_factory.h"
 
 namespace bustub {
 
@@ -28,7 +25,7 @@ namespace bustub {
  * UpdateExecutor executes an update on a table.
  * Updated values are always pulled from a child.
  */
-class UpdateExecutor : public AbstractExecutor {
+class UpdateExecutor final : public AbstractExecutor {
   friend class UpdatePlanNode;
 
  public:
@@ -55,16 +52,15 @@ class UpdateExecutor : public AbstractExecutor {
   auto Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool override;
 
   /** @return The output schema for the update */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  [[nodiscard]] auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
  private:
   /** The update plan node to be executed */
   const UpdatePlanNode *plan_;
 
-  /** Metadata identifying the table that should be updated */
-  const TableInfo *table_info_;
-
   /** The child executor to obtain value from */
   std::unique_ptr<AbstractExecutor> child_executor_;
+
+  bool is_update_finish_ = false;
 };
 }  // namespace bustub

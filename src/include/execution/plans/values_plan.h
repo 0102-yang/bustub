@@ -36,19 +36,21 @@ class ValuesPlanNode : public AbstractPlanNode {
    * @param values The values produced by this plan node
    */
   explicit ValuesPlanNode(SchemaRef output, std::vector<std::vector<AbstractExpressionRef>> values)
-      : AbstractPlanNode(std::move(output), {}), values_(std::move(values)) {}
+      : AbstractPlanNode(std::move(output), {}), Values(std::move(values)) {}
 
   /** @return The type of the plan node */
-  auto GetType() const -> PlanType override { return PlanType::Values; }
+  [[nodiscard]] auto GetType() const -> PlanType override { return PlanType::Values; }
 
-  auto GetValues() const -> const std::vector<std::vector<AbstractExpressionRef>> & { return values_; }
+  [[nodiscard]] auto GetValues() const -> const std::vector<std::vector<AbstractExpressionRef>> & { return Values; }
 
-  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(ValuesPlanNode);
+  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(ValuesPlanNode)
 
-  std::vector<std::vector<AbstractExpressionRef>> values_;
+  std::vector<std::vector<AbstractExpressionRef>> Values;
 
  protected:
-  auto PlanNodeToString() const -> std::string override { return fmt::format("Values {{ rows={} }}", values_.size()); }
+  [[nodiscard]] auto PlanNodeToString() const -> std::string override {
+    return fmt::format("Values {{ rows={} }}", Values.size());
+  }
 };
 
 }  // namespace bustub

@@ -87,11 +87,11 @@ class Optimizer {
    * @brief optimize seq scan as index scan if there's an index on a table
    * @note Fall 2023 only: using hash index and only support point lookup
    */
-  auto OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) -> AbstractPlanNodeRef;
+  auto OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) const -> AbstractPlanNodeRef;
 
   /** @brief check if the index can be matched */
-  auto MatchIndex(const std::string &table_name, uint32_t index_key_idx)
-      -> std::optional<std::tuple<index_oid_t, std::string>>;
+  auto MatchIndex(const std::string &table_name, uint32_t index_key_idx) const
+    -> std::optional<std::tuple<index_oid_t, std::string>>;
 
   /**
    * @brief optimize sort + limit as top N

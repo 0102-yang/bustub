@@ -42,7 +42,7 @@ DiskExtendibleHashTable<K, V, KC>::DiskExtendibleHashTable(const std::string &na
       header_max_depth_(header_max_depth),
       directory_max_depth_(directory_max_depth),
       bucket_max_size_(bucket_max_size) {
-  LOG_INFO(
+  LOG_DEBUG(
       "Create new disk extendible hash table with name %s, header max depth %u, directory max depth %u bucket max size "
       "%u.",
       name.c_str(), header_max_depth, directory_max_depth, bucket_max_size);

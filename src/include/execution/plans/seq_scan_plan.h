@@ -27,14 +27,16 @@ namespace bustub {
 /**
  * The SeqScanPlanNode represents a sequential table scan operation.
  */
-class SeqScanPlanNode : public AbstractPlanNode {
+class SeqScanPlanNode final : public AbstractPlanNode {
  public:
   /**
    * Construct a new SeqScanPlanNode instance.
    * @param output The output schema of this sequential scan plan node
    * @param table_oid The identifier of table to be scanned
+   * @param table_name The table name.
+   * @param filter_predicate The filter predicate
    */
-  SeqScanPlanNode(SchemaRef output, table_oid_t table_oid, std::string table_name,
+  SeqScanPlanNode(SchemaRef output, const table_oid_t table_oid, std::string table_name,
                   AbstractExpressionRef filter_predicate = nullptr)
       : AbstractPlanNode(std::move(output), {}),
         table_oid_{table_oid},
@@ -42,14 +44,14 @@ class SeqScanPlanNode : public AbstractPlanNode {
         filter_predicate_(std::move(filter_predicate)) {}
 
   /** @return The type of the plan node */
-  auto GetType() const -> PlanType override { return PlanType::SeqScan; }
+  [[nodiscard]] auto GetType() const -> PlanType override { return PlanType::SeqScan; }
 
   /** @return The identifier of the table that should be scanned */
-  auto GetTableOid() const -> table_oid_t { return table_oid_; }
+  [[nodiscard]] auto GetTableOid() const -> table_oid_t { return table_oid_; }
 
   static auto InferScanSchema(const BoundBaseTableRef &table_ref) -> Schema;
 
-  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(SeqScanPlanNode);
+  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(SeqScanPlanNode)
 
   /** The table whose tuples should be scanned */
   table_oid_t table_oid_;
@@ -63,7 +65,7 @@ class SeqScanPlanNode : public AbstractPlanNode {
   AbstractExpressionRef filter_predicate_;
 
  protected:
-  auto PlanNodeToString() const -> std::string override {
+  [[nodiscard]] auto PlanNodeToString() const -> std::string override {
     if (filter_predicate_) {
       return fmt::format("SeqScan {{ table={}, filter={} }}", table_name_, filter_predicate_);
     }

@@ -87,7 +87,7 @@ void TableGenerator::FillTable(TableInfo *info, TableInsertMeta *table_meta) {
 void TableGenerator::GenerateTestTables() {
   /**
    * This array configures each of the test tables. Each table is configured
-   * with a name, size, and schema. We also configure the columns of the table. If
+   * with a name, size, and schema_. We also configure the columns of the table. If
    * you add a new table, set it up here.
    */
   std::vector<TableInsertMeta> insert_meta{
@@ -100,7 +100,7 @@ void TableGenerator::GenerateTestTables() {
        10,
        {{"col1", TypeId::INTEGER, false, Dist::Serial, 0, 10}, {"col2", TypeId::INTEGER, false, Dist::Serial, 10, 20}}},
 
-      // Table 1
+      // table_ 1
       {"test_1",
        TEST1_SIZE,
        {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0},
@@ -108,38 +108,38 @@ void TableGenerator::GenerateTestTables() {
         {"colC", TypeId::INTEGER, false, Dist::Uniform, 0, 9999},
         {"colD", TypeId::INTEGER, false, Dist::Uniform, 0, 99999}}},
 
-      // Table 2
+      // table_ 2
       {"test_2",
        TEST7_SIZE,
        {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 99},
         {"colB", TypeId::INTEGER, true, Dist::Uniform, 0, 999},
         {"colC", TypeId::INTEGER, true, Dist::Cyclic, 0, 9}}},
 
-      // // Table 3
+      // // table_ 3
       // {"test_3",
       //  TEST3_SIZE,
       //  {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
 
-      // // Table 4
+      // // table_ 4
       // {"test_4",
       //  TEST4_SIZE,
       //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0},
       //   {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0},
       //   {"colC", TypeId::INTEGER, true, Dist::Uniform, 0, 9}}},
 
-      // // Table 5
+      // // table_ 5
       // {"test_5",
       //  0,
       //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
 
-      // // Table 6
+      // // table_ 6
       // {"test_6",
       //  TEST6_SIZE,
       //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0},
       //   {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0},
       //   {"colC", TypeId::INTEGER, true, Dist::Uniform, 0, 9}}},
 
-      // // Table 7
+      // // table_ 7
       // {"test_7",
       //  TEST7_SIZE,
       //  {{"col1", TypeId::SMALLINT, false, Dist::Serial, 0, 0},
@@ -147,12 +147,12 @@ void TableGenerator::GenerateTestTables() {
       //   {"col3", TypeId::BIGINT, false, Dist::Uniform, 0, 1024},
       //   {"col4", TypeId::INTEGER, true, Dist::Uniform, 0, 2048}}},
 
-      // // Table 8
+      // // table_ 8
       // {"test_8",
       //  TEST8_SIZE,
       //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
 
-      // // Table 9
+      // // table_ 9
       // {"test_9",
       //  TEST9_SIZE,
       //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
@@ -170,7 +170,7 @@ void TableGenerator::GenerateTestTables() {
   };
 
   for (auto &table_meta : insert_meta) {
-    // Create Schema
+    // Create schema_
     std::vector<Column> cols{};
     cols.reserve(table_meta.col_meta_.size());
     for (const auto &col_meta : table_meta.col_meta_) {

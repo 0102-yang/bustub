@@ -14,9 +14,7 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 
-#include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/delete_plan.h"
 #include "storage/table/tuple.h"
@@ -27,7 +25,7 @@ namespace bustub {
  * DeletedExecutor executes a delete on a table.
  * Deleted values are always pulled from a child.
  */
-class DeleteExecutor : public AbstractExecutor {
+class DeleteExecutor final : public AbstractExecutor {
  public:
   /**
    * Construct a new DeleteExecutor instance.
@@ -53,7 +51,7 @@ class DeleteExecutor : public AbstractExecutor {
   auto Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool override;
 
   /** @return The output schema for the delete */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
+  [[nodiscard]] auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
  private:
   /** The delete plan node to be executed */
@@ -61,5 +59,7 @@ class DeleteExecutor : public AbstractExecutor {
 
   /** The child executor from which RIDs for deleted tuples are pulled */
   std::unique_ptr<AbstractExecutor> child_executor_;
+
+  bool is_deletion_finish_ = false;
 };
 }  // namespace bustub

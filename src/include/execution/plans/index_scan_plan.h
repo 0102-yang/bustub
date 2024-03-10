@@ -25,7 +25,7 @@ namespace bustub {
 /**
  * IndexScanPlanNode identifies a table that should be scanned with an optional predicate.
  */
-class IndexScanPlanNode : public AbstractPlanNode {
+class IndexScanPlanNode final : public AbstractPlanNode {
  public:
   /**
    * Creates a new index scan plan node with filter predicate.
@@ -34,7 +34,7 @@ class IndexScanPlanNode : public AbstractPlanNode {
    * @param filter_predicate The predicate pushed down to index scan.
    * @param pred_key The key for point lookup
    */
-  IndexScanPlanNode(SchemaRef output, table_oid_t table_oid, index_oid_t index_oid,
+  IndexScanPlanNode(SchemaRef output, const table_oid_t table_oid, const index_oid_t index_oid,
                     AbstractExpressionRef filter_predicate = nullptr, ConstantValueExpression *pred_key = nullptr)
       : AbstractPlanNode(std::move(output), {}),
         table_oid_(table_oid),
@@ -42,12 +42,12 @@ class IndexScanPlanNode : public AbstractPlanNode {
         filter_predicate_(std::move(filter_predicate)),
         pred_key_(pred_key) {}
 
-  auto GetType() const -> PlanType override { return PlanType::IndexScan; }
+  [[nodiscard]] auto GetType() const -> PlanType override { return PlanType::IndexScan; }
 
   /** @return the identifier of the table that should be scanned */
-  auto GetIndexOid() const -> index_oid_t { return index_oid_; }
+  [[nodiscard]] auto GetIndexOid() const -> index_oid_t { return index_oid_; }
 
-  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(IndexScanPlanNode);
+  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(IndexScanPlanNode)
 
   /** The table which the index is created on. */
   table_oid_t table_oid_;
@@ -70,7 +70,7 @@ class IndexScanPlanNode : public AbstractPlanNode {
   // Add anything you want here for index lookup
 
  protected:
-  auto PlanNodeToString() const -> std::string override {
+  [[nodiscard]] auto PlanNodeToString() const -> std::string override {
     if (filter_predicate_) {
       return fmt::format("IndexScan {{ index_oid={}, filter={} }}", index_oid_, filter_predicate_);
     }
