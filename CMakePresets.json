@@ -5,11 +5,16 @@
   },
   "configurePresets": [
     {
-      "name": "linux-base",
+      "name": "linux-clang-debug",
+      "displayName": "Linux Clang Debug",
       "generator": "Ninja",
-      "hidden": true,
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-14",
+        "CMAKE_CXX_COMPILER": "clang++-14",
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -17,29 +22,15 @@
       }
     },
     {
-      "name": "linux-clang-release-with-debug-info",
-      "displayName": "Linux Clang Release DebugInfo",
-      "inherits": "linux-base",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-14",
-        "CMAKE_CXX_COMPILER": "clang++-14",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
+      "name": "linux-clang-relwithdebinfo",
+      "displayName": "Linux Clang RelWithDebInfo",
+      "inherits": "linux-clang-debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
     },
     {
-      "name": "linux-gcc-debug",
-      "displayName": "Linux GCC Debug",
-      "inherits": "linux-base",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "linux-gcc-trace-debug",
-      "displayName": "Linux GCC Trace Debug",
-      "inherits": "linux-gcc-debug",
+      "name": "linux-clang-trace-debug",
+      "displayName": "Linux Clang Trace Debug",
+      "inherits": "linux-clang-debug",
       "cacheVariables": {
         "ENABLE_TRACE_DEBUG": {
           "type": "BOOL",

@@ -5,12 +5,19 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-vscode.cpptools"
+        "ms-vscode.cpptools",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "twxs.cmake",
+        "ms-vscode.cmake-tools"
       ]
     }
   },
   "name": "Bustub C++17",
-  "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ]
+  "runArgs": [
+    "--cap-add=SYS_PTRACE",
+    "--security-opt",
+    "seccomp=unconfined"
+  ]
   // "forwardPorts": [],
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "gcc -v",
