@@ -34,7 +34,7 @@ enum class AggregationType { CountStarAggregate, CountAggregate, SumAggregate, M
  *
  * NOTE: To simplify this project, AggregationPlanNode must always have exactly one child.
  */
-class AggregationPlanNode : public AbstractPlanNode {
+class AggregationPlanNode final : public AbstractPlanNode {
  public:
   /**
    * Construct a new AggregationPlanNode.
@@ -52,34 +52,34 @@ class AggregationPlanNode : public AbstractPlanNode {
         agg_types_(std::move(agg_types)) {}
 
   /** @return The type of the plan node */
-  auto GetType() const -> PlanType override { return PlanType::Aggregation; }
+  [[nodiscard]] auto GetType() const -> PlanType override { return PlanType::Aggregation; }
 
   /** @return the child of this aggregation plan node */
-  auto GetChildPlan() const -> AbstractPlanNodeRef {
+  [[nodiscard]] auto GetChildPlan() const -> AbstractPlanNodeRef {
     BUSTUB_ASSERT(GetChildren().size() == 1, "Aggregation expected to only have one child.");
     return GetChildAt(0);
   }
 
   /** @return The idx'th group by expression */
-  auto GetGroupByAt(uint32_t idx) const -> const AbstractExpressionRef & { return group_bys_[idx]; }
+  [[nodiscard]] auto GetGroupByAt(const uint32_t idx) const -> const AbstractExpressionRef & { return group_bys_[idx]; }
 
   /** @return The group by expressions */
-  auto GetGroupBys() const -> const std::vector<AbstractExpressionRef> & { return group_bys_; }
+  [[nodiscard]] auto GetGroupBys() const -> const std::vector<AbstractExpressionRef> & { return group_bys_; }
 
   /** @return The idx'th aggregate expression */
-  auto GetAggregateAt(uint32_t idx) const -> const AbstractExpressionRef & { return aggregates_[idx]; }
+  [[nodiscard]] auto GetAggregateAt(const uint32_t idx) const -> const AbstractExpressionRef & { return aggregates_[idx]; }
 
   /** @return The aggregate expressions */
-  auto GetAggregates() const -> const std::vector<AbstractExpressionRef> & { return aggregates_; }
+  [[nodiscard]] auto GetAggregates() const -> const std::vector<AbstractExpressionRef> & { return aggregates_; }
 
   /** @return The aggregate types */
-  auto GetAggregateTypes() const -> const std::vector<AggregationType> & { return agg_types_; }
+  [[nodiscard]] auto GetAggregateTypes() const -> const std::vector<AggregationType> & { return agg_types_; }
 
   static auto InferAggSchema(const std::vector<AbstractExpressionRef> &group_bys,
                              const std::vector<AbstractExpressionRef> &aggregates,
                              const std::vector<AggregationType> &agg_types) -> Schema;
 
-  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(AggregationPlanNode);
+  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(AggregationPlanNode)
 
   /** The GROUP BY expressions */
   std::vector<AbstractExpressionRef> group_bys_;
@@ -89,7 +89,7 @@ class AggregationPlanNode : public AbstractPlanNode {
   std::vector<AggregationType> agg_types_;
 
  protected:
-  auto PlanNodeToString() const -> std::string override;
+  [[nodiscard]] auto PlanNodeToString() const -> std::string override;
 };
 
 /** AggregateKey represents a key in an aggregation operation */

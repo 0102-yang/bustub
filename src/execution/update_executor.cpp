@@ -88,8 +88,7 @@ auto UpdateExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
   }
 
   is_update_finish_ = true;
-  const Schema integer_schema({Column("update_rows", INTEGER)});
-  *tuple = Tuple({Value{INTEGER, updated_rows_count}}, &integer_schema);
+  *tuple = Tuple({Value{INTEGER, updated_rows_count}}, &GetOutputSchema());
   return true;
 }
 

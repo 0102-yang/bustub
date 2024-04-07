@@ -55,8 +55,7 @@ auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
   }
 
   is_deletion_finish_ = true;
-  const Schema integer_schema({Column("delete_rows", INTEGER)});
-  *tuple = Tuple({Value{INTEGER, deleted_rows_count}}, &integer_schema);
+  *tuple = Tuple({Value{INTEGER, deleted_rows_count}}, &GetOutputSchema());
   return true;
 }
 

@@ -211,7 +211,6 @@ auto BufferPoolManager::AllocatePage() -> page_id_t { return next_page_id_++; }
 
 auto BufferPoolManager::FetchPageRead(const page_id_t page_id) -> ReadPageGuard {
   Page *fetch_page = FetchPage(page_id);
-  LOG_TRACE("Trying to acquire read lock of page %d.", page_id);
   fetch_page->RLatch();
   LOG_TRACE("Acquire read lock of page %d successfully.", page_id);
   return {this, fetch_page};
@@ -219,7 +218,6 @@ auto BufferPoolManager::FetchPageRead(const page_id_t page_id) -> ReadPageGuard 
 
 auto BufferPoolManager::FetchPageWrite(const page_id_t page_id) -> WritePageGuard {
   Page *fetch_page = FetchPage(page_id);
-  LOG_TRACE("Trying to acquire write lock of page %d.", page_id);
   fetch_page->WLatch();
   LOG_TRACE("Acquire write lock of page %d successfully.", page_id);
   return {this, fetch_page};
@@ -227,7 +225,6 @@ auto BufferPoolManager::FetchPageWrite(const page_id_t page_id) -> WritePageGuar
 
 auto BufferPoolManager::NewPageGuarded(page_id_t *page_id) -> WritePageGuard {
   Page *new_page = NewPage(page_id);
-  LOG_TRACE("Trying to acquire write lock of page %d.", *page_id);
   new_page->WLatch();
   LOG_TRACE("Acquire write lock of page %d successfully.", *page_id);
   return {this, new_page};

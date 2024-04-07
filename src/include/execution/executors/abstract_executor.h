@@ -16,6 +16,7 @@
 #include "storage/table/tuple.h"
 
 namespace bustub {
+
 class ExecutorContext;
 /**
  * The AbstractExecutor implements the Volcano tuple-at-a-time iterator model.
@@ -48,13 +49,14 @@ class AbstractExecutor {
   virtual auto Next(Tuple *tuple, RID *rid) -> bool = 0;
 
   /** @return The schema of the tuples that this executor produces */
-  virtual auto GetOutputSchema() const -> const Schema & = 0;
+  [[nodiscard]] virtual auto GetOutputSchema() const -> const Schema & = 0;
 
   /** @return The executor context in which this executor runs */
-  auto GetExecutorContext() -> ExecutorContext * { return exec_ctx_; }
+  [[nodiscard]] auto GetExecutorContext() const -> ExecutorContext * { return exec_ctx_; }
 
  protected:
   /** The executor context in which the executor runs */
   ExecutorContext *exec_ctx_;
 };
+
 }  // namespace bustub

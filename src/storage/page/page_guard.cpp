@@ -36,6 +36,7 @@ ReadPageGuard::ReadPageGuard(ReadPageGuard &&that) noexcept = default;
 
 auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & {
   if (this != &that) {
+    Drop();
     guard_ = std::move(that.guard_);
   }
   return *this;
@@ -55,6 +56,7 @@ WritePageGuard::WritePageGuard(WritePageGuard &&that) noexcept = default;
 
 auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard & {
   if (this != &that) {
+    Drop();
     guard_ = std::move(that.guard_);
   }
   return *this;
