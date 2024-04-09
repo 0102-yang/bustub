@@ -12,9 +12,7 @@
 
 #include "buffer/buffer_pool_manager.h"
 
-#include "common/exception.h"
 #include "common/logger.h"
-#include "common/macros.h"
 #include "storage/page/page_guard.h"
 
 namespace bustub {
@@ -212,21 +210,21 @@ auto BufferPoolManager::AllocatePage() -> page_id_t { return next_page_id_++; }
 auto BufferPoolManager::FetchPageRead(const page_id_t page_id) -> ReadPageGuard {
   Page *fetch_page = FetchPage(page_id);
   fetch_page->RLatch();
-  LOG_TRACE("Acquire read lock of page %d successfully.", page_id);
+  LOG_TRACE("Acquired read lock of page %d", page_id);
   return {this, fetch_page};
 }
 
 auto BufferPoolManager::FetchPageWrite(const page_id_t page_id) -> WritePageGuard {
   Page *fetch_page = FetchPage(page_id);
   fetch_page->WLatch();
-  LOG_TRACE("Acquire write lock of page %d successfully.", page_id);
+  LOG_TRACE("Acquired write lock of page %d", page_id);
   return {this, fetch_page};
 }
 
 auto BufferPoolManager::NewPageGuarded(page_id_t *page_id) -> WritePageGuard {
   Page *new_page = NewPage(page_id);
   new_page->WLatch();
-  LOG_TRACE("Acquire write lock of page %d successfully.", *page_id);
+  LOG_TRACE("Acquired write lock of page %d", *page_id);
   return {this, new_page};
 }
 

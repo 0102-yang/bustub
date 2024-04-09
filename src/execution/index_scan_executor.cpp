@@ -13,7 +13,9 @@
 
 namespace bustub {
 IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanPlanNode *plan)
-    : AbstractExecutor(exec_ctx), plan_(plan) {}
+    : AbstractExecutor(exec_ctx), plan_(plan) {
+  LOG_DEBUG("Initialize index scan executor with plan:\n%s", plan_->ToString().c_str());
+}
 
 void IndexScanExecutor::Init() {
   const auto catalog = exec_ctx_->GetCatalog();
@@ -23,7 +25,7 @@ void IndexScanExecutor::Init() {
   const Schema key_schema({Column("key", INTEGER)});
   const auto value = plan_->pred_key_->Evaluate(nullptr, GetOutputSchema());
   hash_table_index->ScanKey({{value}, &key_schema}, &rids_, nullptr);
-  LOG_DEBUG("Get %lu rid(s) from the scan", rids_.size());
+  LOG_TRACE("Index scanned %lu rid(s)", rids_.size());
 }
 
 auto IndexScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
@@ -39,7 +41,8 @@ auto IndexScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
 
     *tuple = next_tuple;
     *rid = next_rid;
-    LOG_DEBUG("Get tuple - %s, rid - %s from index scan", tuple->ToString(&GetOutputSchema()).c_str(), rid->ToString().c_str());
+    LOG_TRACE("Get tuple - %s, rid - %s from index scan", tuple->ToString(&GetOutputSchema()).c_str(),
+              rid->ToString().c_str());
     return true;
   }
 

@@ -25,7 +25,7 @@ add_library(
         update_executor.cpp
         values_executor.cpp
         window_function_executor.cpp
-)
+        executor_result.cpp)
 
 set(ALL_OBJECT_FILES
         ${ALL_OBJECT_FILES} $<TARGET_OBJECTS:bustub_execution>

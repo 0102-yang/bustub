@@ -27,7 +27,7 @@ namespace bustub {
 /**
  * NestedLoopJoinPlanNode joins tuples from two child plan nodes.
  */
-class NestedLoopJoinPlanNode : public AbstractPlanNode {
+class NestedLoopJoinPlanNode final : public AbstractPlanNode {
  public:
   /**
    * Construct a new NestedLoopJoinPlanNode instance.
@@ -43,23 +43,23 @@ class NestedLoopJoinPlanNode : public AbstractPlanNode {
         join_type_(join_type) {}
 
   /** @return The type of the plan node */
-  auto GetType() const -> PlanType override { return PlanType::NestedLoopJoin; }
+  [[nodiscard]] auto GetType() const -> PlanType override { return PlanType::NestedLoopJoin; }
 
   /** @return The predicate to be used in the nested loop join */
-  auto Predicate() const -> const AbstractExpressionRef & { return predicate_; }
+  [[nodiscard]] auto Predicate() const -> const AbstractExpressionRef & { return predicate_; }
 
   /** @return The join type used in the nested loop join */
-  auto GetJoinType() const -> JoinType { return join_type_; };
+  [[nodiscard]] auto GetJoinType() const -> JoinType { return join_type_; }
 
   /** @return The left plan node of the nested loop join, by convention it should be the smaller table */
-  auto GetLeftPlan() const -> AbstractPlanNodeRef { return GetChildAt(0); }
+  [[nodiscard]] auto GetLeftPlan() const -> AbstractPlanNodeRef { return GetChildAt(0); }
 
   /** @return The right plan node of the nested loop join */
-  auto GetRightPlan() const -> AbstractPlanNodeRef { return GetChildAt(1); }
+  [[nodiscard]] auto GetRightPlan() const -> AbstractPlanNodeRef { return GetChildAt(1); }
 
   static auto InferJoinSchema(const AbstractPlanNode &left, const AbstractPlanNode &right) -> Schema;
 
-  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(NestedLoopJoinPlanNode);
+  BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(NestedLoopJoinPlanNode)
 
   /** The join predicate */
   AbstractExpressionRef predicate_;
@@ -68,7 +68,7 @@ class NestedLoopJoinPlanNode : public AbstractPlanNode {
   JoinType join_type_;
 
  protected:
-  auto PlanNodeToString() const -> std::string override {
+  [[nodiscard]] auto PlanNodeToString() const -> std::string override {
     return fmt::format("NestedLoopJoin {{ type={}, predicate={} }}", join_type_, predicate_);
   }
 };

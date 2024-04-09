@@ -18,13 +18,13 @@ namespace bustub {
 
 DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+  LOG_DEBUG("Initialize delete executor with plan:\n%s", plan_->ToString().c_str());
+}
 
 void DeleteExecutor::Init() { child_executor_->Init(); }
 
 auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
-  LOG_TRACE("Delete Executor Next");
-
   if (is_deletion_finish_) {
     return false;
   }
@@ -39,7 +39,7 @@ auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
     new_deleted_tuple_meta.is_deleted_ = true;
 
     table_info->table_->UpdateTupleMeta(new_deleted_tuple_meta, *rid);
-    LOG_DEBUG("Delete tuple %s, RID %s", child_tuple.ToString(&child_executor_->GetOutputSchema()).c_str(),
+    LOG_TRACE("Delete tuple %s, RID %s", child_tuple.ToString(&child_executor_->GetOutputSchema()).c_str(),
               rid->ToString().c_str());
 
     // Delete indexes.
@@ -47,7 +47,7 @@ auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
       const auto key_tuple = child_tuple.KeyFromTuple(child_executor_->GetOutputSchema(), index_info->key_schema_,
                                                       index_info->index_->GetKeyAttrs());
       index_info->index_->DeleteEntry(key_tuple, *rid, nullptr);
-      LOG_DEBUG("Delete index of RID %s from index %s", rid->ToString().c_str(),
+      LOG_TRACE("Delete index of RID %s from index %s", rid->ToString().c_str(),
                 index_info->index_->ToString().c_str());
     }
 

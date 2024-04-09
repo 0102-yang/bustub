@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 
+#include "executor_result.h"
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/expressions/abstract_expression.h"
@@ -220,8 +221,6 @@ class AggregationExecutor final : public AbstractExecutor {
   /** The child executor that produces tuples over which the aggregation is computed */
   std::unique_ptr<AbstractExecutor> child_executor_;
 
-  std::vector<std::vector<Value>> final_aggregate_key_values_;
-
-  std::vector<std::vector<Value>>::iterator iterator_;
+  ExecutorResult executor_result_;
 };
 }  // namespace bustub
