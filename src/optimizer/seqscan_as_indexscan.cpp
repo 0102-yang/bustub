@@ -8,25 +8,39 @@ namespace bustub {
 auto Optimizer::OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) const -> AbstractPlanNodeRef {
   // TODO(student): implement seq scan with predicate -> index scan optimizer rule
   // The Filter Predicate Pushdown has been enabled for you in optimizer.cpp when forcing starter rule
-  if (plan->GetType() != PlanType::SeqScan) {
-    return plan;
+
+  // Recursively optimizes the children of plan to index scan plan node.
+  std::vector<AbstractPlanNodeRef> children;
+  for (const auto &child : plan->GetChildren()) {
+    children.emplace_back(OptimizeSeqScanAsIndexScan(child));
+  }
+  auto optimized_plan = plan->CloneWithChildren(std::move(children));
+
+  // Checks if the optimized plan is a seq scan plan node.
+  if (optimized_plan->GetType() != PlanType::SeqScan) {
+    LOG_TRACE("Failed to optimize %s to seq-scan plan due to plan is not a seq-scan plan", optimized_plan->ToString().c_str());
+    return optimized_plan;
   }
 
-  // Check filter predicate.
-  const auto seq_scan_plan = dynamic_cast<const SeqScanPlanNode &>(*plan);
-  LOG_DEBUG("Retrive %s plan", seq_scan_plan.ToString().c_str());
+  // Checks if the filter predicate is nullptr.
+  const auto seq_scan_plan = dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
+  LOG_TRACE("Retrive %s plan", seq_scan_plan.ToString().c_str());
   if (seq_scan_plan.filter_predicate_ == nullptr) {
     LOG_TRACE("Optimize failed, filter predicate is nullptr");
-    return plan;
+    return optimized_plan;
   }
 
-  // Check the filtering columns from the predicate.
+  // Checks if the filter predicate satisfies the index-scan conditions.
   if (seq_scan_plan.filter_predicate_->GetChildren().size() != 2 ||
       !seq_scan_plan.filter_predicate_->GetChildAt(0)->GetChildren().empty() ||
       !seq_scan_plan.filter_predicate_->GetChildAt(1)->GetChildren().empty()) {
     LOG_TRACE("Optimize failed, there are not two final children expressions of filter predicate");
-    return plan;
+    return optimized_plan;
   }
+
+  /*
+   * Optimizes the seq scan plan node to an index scan plan node.
+   */
 
   const auto indexes_info = catalog_.GetTableIndexes(seq_scan_plan.table_name_);
   const auto column_value_expr =
@@ -40,11 +54,12 @@ auto Optimizer::OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) cons
     const auto index_scan_plan = std::make_shared<IndexScanPlanNode>(
         seq_scan_plan.output_schema_, seq_scan_plan.table_oid_, std::get<0>(index_metadata.value()),
         seq_scan_plan.filter_predicate_, constant_value_expr);
-    LOG_DEBUG("Optimize succeed, seqscan node to indexscan node - Index Scan Node: %s", index_scan_plan->ToString().c_str());
+    LOG_TRACE("Succeed in optimizing seqscan plan %s to indexscan plan %s", seq_scan_plan.ToString().c_str(),
+              index_scan_plan->ToString().c_str());
     return index_scan_plan;
   }
   LOG_TRACE("Optimize failed, no matched index");
-  return plan;
+  return optimized_plan;
 }
 
 }  // namespace bustub

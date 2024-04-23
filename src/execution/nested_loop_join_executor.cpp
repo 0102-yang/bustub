@@ -39,6 +39,10 @@ void NestedLoopJoinExecutor::Init() {
     return;
   }
 
+  /*
+   * Generate executor results.
+   */
+
   Tuple left_tuple;
   Tuple right_tuple;
   RID unused_rid;
@@ -48,6 +52,7 @@ void NestedLoopJoinExecutor::Init() {
   while (left_executor_->Next(&left_tuple, &unused_rid)) {
     bool left_join_null = true;
     right_executor_->Init();
+
     while (right_executor_->Next(&right_tuple, &unused_rid)) {
       if (nested_loop_join_predicate &&
           !nested_loop_join_predicate->EvaluateJoin(&left_tuple, left_schema, &right_tuple, right_schema)
