@@ -124,7 +124,7 @@ void HashJoinExecutor::Init() {
 
 auto HashJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   while (executor_result_.IsNotEnd()) {
-    *tuple = executor_result_.NextTuple();
+    *tuple = executor_result_.Next();
     LOG_TRACE("Result %s is obtained in hash loop join", tuple->ToString(&GetOutputSchema()).c_str());
     return true;
   }

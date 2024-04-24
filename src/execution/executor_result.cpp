@@ -1,19 +1,17 @@
 #include "execution/executors/executor_result.h"
-#include "type/value_factory.h"
 #include <cstdint>
+#include "type/value_factory.h"
 
 namespace bustub {
 
 ExecutorResult::ExecutorResult(const Schema *output_schema) : output_schema_(output_schema) {}
-
-void ExecutorResult::EmplaceBack(std::vector<Value> &&values) { results_.emplace_back(std::move(values)); }
 
 void ExecutorResult::EmplaceBack(const std::vector<std::vector<Value>> &values_array) {
   std::vector<Value> tmp_values;
   for (const auto &values : values_array) {
     std::copy(values.begin(), values.end(), std::back_inserter(tmp_values));
   }
-  EmplaceBack(std::move(tmp_values));
+  results_.emplace_back(tmp_values, output_schema_);
 }
 
 void ExecutorResult::EmplaceBack(const std::vector<std::pair<const Tuple *, const Schema *>> &tuples) {
@@ -25,12 +23,14 @@ void ExecutorResult::EmplaceBack(const std::vector<std::pair<const Tuple *, cons
                                  : ValueFactory::GetNullValueByType(output_schema->GetColumn(i).GetType()));
     }
   }
-  EmplaceBack(std::move(tmp_values));
+  results_.emplace_back(tmp_values, output_schema_);
 }
+
+void ExecutorResult::EmplaceBack(Tuple &&tuple) { results_.emplace_back(std::move(tuple)); }
 
 bool ExecutorResult::IsNotEnd() const { return iterator_ != results_.cend(); }
 
-auto ExecutorResult::NextTuple() -> Tuple { return {*iterator_++, output_schema_}; }
+auto ExecutorResult::Next() -> Tuple { return *iterator_++; }
 
 auto ExecutorResult::IsNotEmpty() const -> bool { return !results_.empty(); }
 

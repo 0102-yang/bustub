@@ -86,7 +86,7 @@ void NestedLoopJoinExecutor::Init() {
 
 auto NestedLoopJoinExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
   while (executor_result_.IsNotEnd()) {
-    *tuple = executor_result_.NextTuple();
+    *tuple = executor_result_.Next();
     LOG_TRACE("Result %s is obtained in nested loop join", tuple->ToString(&GetOutputSchema()).c_str());
     return true;
   }
