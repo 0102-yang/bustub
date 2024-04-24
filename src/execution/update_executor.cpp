@@ -19,7 +19,7 @@ UpdateExecutor::UpdateExecutor(ExecutorContext *exec_ctx, const UpdatePlanNode *
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
   // As of Fall 2022, you DON'T need to implement update executor to have perfect score in project 3 / project 4.
-  LOG_DEBUG("Initialize update executor with plan:\n%s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize update executor with %s", plan_->ToString().c_str());
 }
 
 void UpdateExecutor::Init() { child_executor_->Init(); }

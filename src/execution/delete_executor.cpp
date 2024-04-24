@@ -19,7 +19,7 @@ namespace bustub {
 DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
-  LOG_DEBUG("Initialize delete executor with plan:\n%s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize delete executor with %s", plan_->ToString().c_str());
 }
 
 void DeleteExecutor::Init() { child_executor_->Init(); }

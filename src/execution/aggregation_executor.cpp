@@ -22,7 +22,7 @@ AggregationExecutor::AggregationExecutor(ExecutorContext *exec_ctx, const Aggreg
       plan_(plan),
       child_executor_(std::move(child_executor)),
       executor_result_(&GetOutputSchema()) {
-  LOG_DEBUG("Initialize aggregation executor with plan:\n%s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize aggregation executor with %s", plan_->ToString().c_str());
 }
 
 void AggregationExecutor::Init() {

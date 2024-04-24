@@ -28,7 +28,7 @@ NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const 
     // Note for 2023 Fall: You ONLY need to implement left join and inner join.
     throw NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
   }
-  LOG_DEBUG("Initialize nested loop join executor with plan:\n%s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize nested loop join executor with %s", plan_->ToString().c_str());
 }
 
 void NestedLoopJoinExecutor::Init() {
