@@ -59,6 +59,13 @@ class ExecutorResult {
   [[nodiscard]] bool IsNotEnd() const;
 
   /**
+   * @brief Returns the number of tuples in the ExecutorResult.
+   *
+   * @return The number of tuples.
+   */
+  [[nodiscard]] size_t Size() const { return results_.size(); }
+
+  /**
    * @brief Checks if the ExecutorResult is not empty.
    *
    * @return True if the ExecutorResult is not empty, false otherwise.
