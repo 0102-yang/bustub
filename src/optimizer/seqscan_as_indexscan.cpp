@@ -54,7 +54,7 @@ auto Optimizer::OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) cons
     const auto index_scan_plan = std::make_shared<IndexScanPlanNode>(
         seq_scan_plan.output_schema_, seq_scan_plan.table_oid_, std::get<0>(index_metadata.value()),
         seq_scan_plan.filter_predicate_, constant_value_expr);
-    LOG_TRACE("Succeed in optimizing seqscan plan %s to indexscan plan %s", seq_scan_plan.ToString().c_str(),
+    LOG_TRACE("Succeed in optimizing %s to %s", seq_scan_plan.ToString().c_str(),
               index_scan_plan->ToString().c_str());
     return index_scan_plan;
   }
