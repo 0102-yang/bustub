@@ -28,7 +28,7 @@ HashJoinExecutor::HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlan
     // Note for 2023 Fall: You ONLY need to implement left join and inner join.
     throw NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
   }
-  LOG_DEBUG("Initialize hash join executor with %s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize hash join executor.\n%s", plan_->ToString().c_str());
 }
 
 void HashJoinExecutor::Init() {

@@ -14,7 +14,7 @@
 namespace bustub {
 IndexScanExecutor::IndexScanExecutor(ExecutorContext *exec_ctx, const IndexScanPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan) {
-  LOG_DEBUG("Initialize index scan executor with %s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize index scan executor.\n%s", plan_->ToString().c_str());
 }
 
 void IndexScanExecutor::Init() {

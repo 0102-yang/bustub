@@ -18,7 +18,7 @@ LimitExecutor::LimitExecutor(ExecutorContext *exec_ctx, const LimitPlanNode *pla
                              std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
   limit_ = plan_->GetLimit();
-  LOG_DEBUG("Initialize limit executor with %s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize limit executor.\n%s", plan_->ToString().c_str());
 }
 
 void LimitExecutor::Init() {

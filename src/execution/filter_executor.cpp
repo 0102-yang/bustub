@@ -6,7 +6,9 @@ namespace bustub {
 
 FilterExecutor::FilterExecutor(ExecutorContext *exec_ctx, const FilterPlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+  LOG_DEBUG("Initialize filter executor.\n%s",plan_->ToString().c_str());
+}
 
 void FilterExecutor::Init() {
   // Initialize the child executor

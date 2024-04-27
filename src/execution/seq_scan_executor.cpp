@@ -16,7 +16,7 @@ namespace bustub {
 
 SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan) {
-  LOG_DEBUG("Initialize sequential scan executor with %s", plan_->ToString().c_str());
+  LOG_DEBUG("Initialize sequential scan executor.\n%s", plan_->ToString().c_str());
 }
 
 void SeqScanExecutor::Init() {

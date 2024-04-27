@@ -5,7 +5,9 @@ namespace bustub {
 
 ProjectionExecutor::ProjectionExecutor(ExecutorContext *exec_ctx, const ProjectionPlanNode *plan,
                                        std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
+    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+  LOG_DEBUG("Initialize projection executor.\n%s", plan_->ToString().c_str());
+}
 
 void ProjectionExecutor::Init() {
   // Initialize the child executor
