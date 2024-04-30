@@ -125,7 +125,7 @@ namespace std {
 /** Implements std::hash on AggregateKey */
 template <>
 struct hash<bustub::AggregateKey> {
-  auto operator()(const bustub::AggregateKey &agg_key) const -> std::size_t {
+  auto operator()(const bustub::AggregateKey &agg_key) const noexcept -> std::size_t {
     size_t curr_hash = 0;
     for (const auto &key : agg_key.group_bys_) {
       if (!key.IsNull()) {

@@ -40,13 +40,13 @@ void SortExecutor::Init() {
         continue;
       }
 
-      const auto sort_value1 = expression->Evaluate(&t1, output_schema);
-      const auto sort_value2 = expression->Evaluate(&t2, output_schema);
+      const auto s1 = expression->Evaluate(&t1, output_schema);
+      const auto s2 = expression->Evaluate(&t2, output_schema);
 
-      if (sort_value1.CompareLessThan(sort_value2) == CmpBool::CmpTrue) {
+      if (s1.CompareLessThan(s2) == CmpBool::CmpTrue) {
         return type != OrderByType::DESC;
       }
-      if (sort_value1.CompareGreaterThan(sort_value2) == CmpBool::CmpTrue) {
+      if (s1.CompareGreaterThan(s2) == CmpBool::CmpTrue) {
         return type == OrderByType::DESC;
       }
     }
