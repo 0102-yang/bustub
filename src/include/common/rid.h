@@ -30,22 +30,23 @@ class RID {
    * @param page_id page identifier
    * @param slot_num slot number
    */
-  RID(page_id_t page_id, uint32_t slot_num) : page_id_(page_id), slot_num_(slot_num) {}
+  RID(const page_id_t page_id, const uint32_t slot_num) : page_id_(page_id), slot_num_(slot_num) {}
 
-  explicit RID(int64_t rid) : page_id_(static_cast<page_id_t>(rid >> 32)), slot_num_(static_cast<uint32_t>(rid)) {}
+  explicit RID(const int64_t rid)
+      : page_id_(static_cast<page_id_t>(rid >> 32)), slot_num_(static_cast<uint32_t>(rid)) {}
 
-  inline auto Get() const -> int64_t { return (static_cast<int64_t>(page_id_)) << 32 | slot_num_; }
+  [[nodiscard]] auto Get() const -> int64_t { return (static_cast<int64_t>(page_id_)) << 32 | slot_num_; }
 
-  inline auto GetPageId() const -> page_id_t { return page_id_; }
+  [[nodiscard]] auto GetPageId() const -> page_id_t { return page_id_; }
 
-  inline auto GetSlotNum() const -> uint32_t { return slot_num_; }
+  [[nodiscard]] auto GetSlotNum() const -> uint32_t { return slot_num_; }
 
-  inline void Set(page_id_t page_id, uint32_t slot_num) {
+  void Set(const page_id_t page_id, const uint32_t slot_num) {
     page_id_ = page_id;
     slot_num_ = slot_num;
   }
 
-  inline auto ToString() const -> std::string {
+  [[nodiscard]] auto ToString() const -> std::string {
     std::stringstream os;
     os << "page_id: " << page_id_;
     os << " slot_num: " << slot_num_ << "\n";
@@ -67,9 +68,8 @@ class RID {
 
 }  // namespace bustub
 
-namespace std {
 template <>
-struct hash<bustub::RID> {
-  auto operator()(const bustub::RID &obj) const -> size_t { return hash<int64_t>()(obj.Get()); }
-};
-}  // namespace std
+struct std::hash<bustub::RID> {
+  auto operator()(const bustub::RID &obj) const noexcept -> size_t { return hash<int64_t>()(obj.Get()); }
+
+};  // namespace std
