@@ -24,23 +24,23 @@ class ExecutorResult {
   DISALLOW_COPY_AND_MOVE(ExecutorResult)
 
   /**
-   * @brief Emplaces a new tuple into the ExecutorResult using the provided values array.
+   * @brief Emplace a new tuple into the ExecutorResult using the provided values array.
    *
    * @param values_array The values array representing the tuple.
    */
   void EmplaceBack(const std::vector<std::vector<Value>> &values_array);
 
   /**
-   * @brief Emplaces a new tuple into the ExecutorResult using the provided tuples.
+   * @brief Emplace a new tuple into the ExecutorResult using the provided tuples.
    *
-   * @param tuples The tuples to be emplaced.
+   * @param tuples The tuples to be emplace.
    */
   void EmplaceBack(const std::vector<std::pair<const Tuple *, const Schema *>> &tuples);
 
   /**
-   * @brief Emplaces a new tuple into the ExecutorResult using the provided tuple.
+   * @brief Emplace a new tuple into the ExecutorResult using the provided tuple.
    *
-   * @param tuple The tuple to be emplaced.
+   * @param tuple The tuple to be emplace.
    */
   void EmplaceBack(Tuple &&tuple);
 
@@ -71,6 +71,11 @@ class ExecutorResult {
    * @return True if the ExecutorResult is not empty, false otherwise.
    */
   [[nodiscard]] auto IsNotEmpty() const -> bool;
+
+  /**
+   * @brief Reverses the order of tuples in the ExecutorResult.
+   */
+  void Reverse();
 
   /**
    * @brief Sets or resets the iterator to the beginning of the ExecutorResult.

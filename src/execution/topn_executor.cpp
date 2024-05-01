@@ -50,7 +50,7 @@ void TopNExecutor::Init() {
         return type == OrderByType::DESC;
       }
     }
-    return true;
+    return false;
   };
 
   while (child_executor_->Next(&tuple, &rid)) {
@@ -65,9 +65,12 @@ void TopNExecutor::Init() {
 
   while (!top_tuples.empty()) {
     std::pop_heap(top_tuples.begin(), top_tuples.end(), cmp);
-    executor_result_.EmplaceBack(std::move(top_tuples.back()));
+    auto max_tuple = top_tuples.back();
     top_tuples.pop_back();
+    executor_result_.EmplaceBack(std::move(max_tuple));
   }
+
+  executor_result_.Reverse();
   executor_result_.SetOrResetBegin();
 }
 

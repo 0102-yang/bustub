@@ -50,7 +50,7 @@ void SortExecutor::Init() {
         return type == OrderByType::DESC;
       }
     }
-    return true;
+    return false;
   });
 
   for (auto &&sort_tuple : sort_tuples) {

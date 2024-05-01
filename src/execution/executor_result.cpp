@@ -34,6 +34,8 @@ auto ExecutorResult::Next() -> Tuple { return *iterator_++; }
 
 auto ExecutorResult::IsNotEmpty() const -> bool { return !results_.empty(); }
 
+void ExecutorResult::Reverse() { reverse(results_.begin(), results_.end()); }
+
 void ExecutorResult::SetOrResetBegin() { iterator_ = results_.cbegin(); }
 
 }  // namespace bustub
