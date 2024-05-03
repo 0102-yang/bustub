@@ -14,6 +14,11 @@ TopNExecutor::TopNExecutor(ExecutorContext *exec_ctx, const TopNPlanNode *plan,
 void TopNExecutor::Init() {
   child_executor_->Init();
 
+  if (executor_result_.IsNotEmpty()) {
+    executor_result_.SetOrResetBegin();
+    return;
+  }
+
   const size_t n = plan_->GetN();
   const auto &order_bys = plan_->GetOrderBy();
   const auto &output_schema = plan_->OutputSchema();
