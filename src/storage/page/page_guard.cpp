@@ -11,7 +11,7 @@ BasicPageGuard::BasicPageGuard(BasicPageGuard &&that) noexcept {
 }
 
 void BasicPageGuard::Drop() {
-  if (bpm_ && page_) {
+  if (bpm_ != nullptr && page_ != nullptr) {
     bpm_->UnpinPage(page_->GetPageId(), is_dirty_);
     bpm_ = nullptr;
     page_ = nullptr;
@@ -20,7 +20,7 @@ void BasicPageGuard::Drop() {
 
 auto BasicPageGuard::operator=(BasicPageGuard &&that) noexcept -> BasicPageGuard & {
   if (this != &that) {
-    if (page_ && PageId() != that.PageId()) {
+    if (page_ != nullptr && PageId() != that.PageId()) {
       bpm_->UnpinPage(PageId(), is_dirty_);
     }
     bpm_ = std::exchange(that.bpm_, nullptr);
@@ -43,7 +43,7 @@ auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & 
 }
 
 void ReadPageGuard::Drop() {
-  if (guard_.bpm_ && guard_.page_) {
+  if (guard_.bpm_ != nullptr && guard_.page_ != nullptr) {
     guard_.page_->RUnlatch();
     LOG_TRACE("Released read lock of page %d", PageId());
     guard_.Drop();
@@ -63,7 +63,7 @@ auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard
 }
 
 void WritePageGuard::Drop() {
-  if (guard_.bpm_ && guard_.page_) {
+  if (guard_.bpm_ != nullptr && guard_.page_ != nullptr) {
     guard_.page_->WUnlatch();
     LOG_TRACE("Released write lock of page %d", PageId());
     guard_.Drop();

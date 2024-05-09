@@ -3,9 +3,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
-#include <unordered_map>
 #include <utility>
-#include <vector>
 
 #include "catalog/catalog.h"
 #include "concurrency/transaction.h"
@@ -91,7 +89,7 @@ class Optimizer {
 
   /** @brief check if the index can be matched */
   auto MatchIndex(const std::string &table_name, uint32_t index_key_idx) const
-    -> std::optional<std::tuple<index_oid_t, std::string>>;
+      -> std::optional<std::tuple<index_oid_t, std::string>>;
 
   /**
    * @brief optimize sort + limit as top N

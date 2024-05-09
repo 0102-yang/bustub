@@ -23,17 +23,15 @@
 
 namespace std {
 
-using namespace bustub;
-
 template <>
-struct equal_to<std::vector<Value>> {
-  bool operator()(const std::vector<Value> &lhs, const std::vector<Value> &rhs) const noexcept {
+struct equal_to<std::vector<bustub::Value>> {
+  auto operator()(const std::vector<bustub::Value> &lhs, const std::vector<bustub::Value> &rhs) const noexcept -> bool {
     if (lhs.size() != rhs.size()) {
       return false;
     }
 
     for (size_t i = 0; i < lhs.size(); i++) {
-      if (lhs[i].CompareEquals(rhs[i]) != CmpBool::CmpTrue) {
+      if (lhs[i].CompareEquals(rhs[i]) != bustub::CmpBool::CmpTrue) {
         return false;
       }
     }
@@ -42,12 +40,12 @@ struct equal_to<std::vector<Value>> {
 };
 
 template <>
-struct hash<std::vector<Value>> {
-  std::size_t operator()(const std::vector<Value> &vec) const noexcept {
+struct hash<std::vector<bustub::Value>> {
+  auto operator()(const std::vector<bustub::Value> &vec) const noexcept -> size_t {
     size_t curr_hash = 0;
     for (const auto &value : vec) {
       if (!value.IsNull()) {
-        curr_hash = HashUtil::CombineHashes(curr_hash, HashUtil::HashValue(&value));
+        curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&value));
       }
     }
     return curr_hash;

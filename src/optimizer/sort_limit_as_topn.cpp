@@ -23,7 +23,8 @@ auto Optimizer::OptimizeSortLimitAsTopN(const AbstractPlanNodeRef &plan) -> Abst
   const auto limit_plan = dynamic_cast<const LimitPlanNode &>(*cloned_plan);
 
   if (limit_plan.GetChildAt(0)->GetType() != PlanType::Sort) {
-    LOG_TRACE("Failed to optimize %s to top-n plan due to plan does not have a child sort plan.", cloned_plan->ToString().c_str());
+    LOG_TRACE("Failed to optimize %s to top-n plan due to plan does not have a child sort plan.",
+              cloned_plan->ToString().c_str());
     return cloned_plan;
   }
   const auto sort_plan = dynamic_cast<const SortPlanNode &>(*cloned_plan->GetChildAt(0));

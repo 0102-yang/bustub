@@ -67,7 +67,9 @@ class AggregationPlanNode final : public AbstractPlanNode {
   [[nodiscard]] auto GetGroupBys() const -> const std::vector<AbstractExpressionRef> & { return group_bys_; }
 
   /** @return The idx'th aggregate expression */
-  [[nodiscard]] auto GetAggregateAt(const uint32_t idx) const -> const AbstractExpressionRef & { return aggregates_[idx]; }
+  [[nodiscard]] auto GetAggregateAt(const uint32_t idx) const -> const AbstractExpressionRef & {
+    return aggregates_[idx];
+  }
 
   /** @return The aggregate expressions */
   [[nodiscard]] auto GetAggregates() const -> const std::vector<AbstractExpressionRef> & { return aggregates_; }

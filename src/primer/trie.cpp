@@ -81,7 +81,7 @@ template <class T>
     std::shared_ptr<TrieNode> clone;
     if (search_path.empty()) {
       // Reach last node.
-      std::shared_ptr v = std::make_shared<T>(std::move(value));
+      std::shared_ptr v = std::make_shared<T>(std::forward<T>(value));
       clone = original ? std::make_shared<TrieNodeWithValue<T>>(original->children_, v)
                        : clone = std::make_shared<TrieNodeWithValue<T>>(v);
     } else {

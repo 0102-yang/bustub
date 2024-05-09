@@ -14,13 +14,11 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 
-#include "executor_result.h"
-#include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/seq_scan_plan.h"
 #include "execution/plans/topn_plan.h"
+#include "executor_result.h"
 #include "storage/table/tuple.h"
 
 namespace bustub {

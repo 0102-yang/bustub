@@ -27,9 +27,9 @@ void SortExecutor::Init() {
 
   /**
    * Sort the tuples based on the specified order by expressions.
-   * 
+   *
    * The sorting is done in ascending order for each expression, unless the order by type is DESC.
-   * 
+   *
    * @param t1 The first tuple to compare.
    * @param t2 The second tuple to compare.
    * @return True if t1 should come before t2 in the sorted order, false otherwise.

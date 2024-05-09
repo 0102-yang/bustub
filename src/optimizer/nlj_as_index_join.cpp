@@ -2,27 +2,20 @@
 #include <memory>
 #include <optional>
 #include <tuple>
-#include "catalog/column.h"
-#include "catalog/schema.h"
 #include "common/exception.h"
 #include "common/macros.h"
 #include "execution/expressions/column_value_expression.h"
 #include "execution/expressions/comparison_expression.h"
-#include "execution/expressions/constant_value_expression.h"
 #include "execution/plans/abstract_plan.h"
-#include "execution/plans/filter_plan.h"
-#include "execution/plans/hash_join_plan.h"
 #include "execution/plans/nested_index_join_plan.h"
 #include "execution/plans/nested_loop_join_plan.h"
-#include "execution/plans/projection_plan.h"
 #include "execution/plans/seq_scan_plan.h"
 #include "optimizer/optimizer.h"
-#include "type/type_id.h"
 
 namespace bustub {
 
 auto Optimizer::MatchIndex(const std::string &table_name, uint32_t index_key_idx) const
-  -> std::optional<std::tuple<index_oid_t, std::string>> {
+    -> std::optional<std::tuple<index_oid_t, std::string>> {
   const auto key_attrs = std::vector{index_key_idx};
   for (const auto *index_info : catalog_.GetTableIndexes(table_name)) {
     if (key_attrs == index_info->index_->GetKeyAttrs()) {

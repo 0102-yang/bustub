@@ -15,7 +15,6 @@
 
 #include "type/boolean_type.h"
 #include "type/value_factory.h"
-#include "type/varlen_type.h"
 
 namespace bustub {
 
@@ -148,7 +147,7 @@ auto TimestampType::DeserializeFrom(const char *storage) const -> Value {
 auto TimestampType::Copy(const Value &val) const -> Value { return {val}; }
 
 auto TimestampType::CastAs(const Value &val, const TypeId type_id) const -> Value {
-  switch (type_id) { // NOLINT
+  switch (type_id) {  // NOLINT
     case TIMESTAMP:
       return Copy(val);
     case VARCHAR:

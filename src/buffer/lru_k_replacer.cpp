@@ -80,18 +80,18 @@ auto LRUKReplacer::Evict(frame_id_t *frame_id) -> bool {
   if (evictable_inf_nodes.empty()) {
     // All frames have non-INF k-distance, then evict a frame
     // whose backward k-distance is maximum of all frames in the replacer.
-    const LRUKNode* min_node = *std::min_element(evictable_nodes.begin(), evictable_nodes.end(),
-                                           [](const LRUKNode *node1, const LRUKNode *node2) {
-                                             return node1->GetBackwardKDist() < node2->GetBackwardKDist();
-                                           });
+    const LRUKNode *min_node = *std::min_element(evictable_nodes.begin(), evictable_nodes.end(),
+                                                 [](const LRUKNode *node1, const LRUKNode *node2) {
+                                                   return node1->GetBackwardKDist() < node2->GetBackwardKDist();
+                                                 });
     *frame_id = min_node->GetFid();
   } else {
     // While multiple frames have INF backward k-distance, then evict the frame with the earliest
     // timestamp overall.
-    const LRUKNode* min_node = *std::min_element(evictable_inf_nodes.begin(), evictable_inf_nodes.end(),
-                                           [](const LRUKNode *node1, const LRUKNode *node2) {
-                                             return node1->GetEarliestTimestamp() < node2->GetEarliestTimestamp();
-                                           });
+    const LRUKNode *min_node = *std::min_element(evictable_inf_nodes.begin(), evictable_inf_nodes.end(),
+                                                 [](const LRUKNode *node1, const LRUKNode *node2) {
+                                                   return node1->GetEarliestTimestamp() < node2->GetEarliestTimestamp();
+                                                 });
     *frame_id = min_node->GetFid();
   }
 

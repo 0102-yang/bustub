@@ -7,7 +7,7 @@ namespace bustub {
 FilterExecutor::FilterExecutor(ExecutorContext *exec_ctx, const FilterPlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
-  LOG_DEBUG("Initialize filter executor.\n%s",plan_->ToString().c_str());
+  LOG_DEBUG("Initialize filter executor.\n%s", plan_->ToString().c_str());
 }
 
 void FilterExecutor::Init() {
@@ -24,7 +24,8 @@ auto FilterExecutor::Next(Tuple *tuple, RID *rid) -> bool {
       return false;
     }
 
-    if (auto value = filter_expr->Evaluate(tuple, child_executor_->GetOutputSchema()); !value.IsNull() && value.GetAs<bool>()) {
+    if (auto value = filter_expr->Evaluate(tuple, child_executor_->GetOutputSchema());
+        !value.IsNull() && value.GetAs<bool>()) {
       return true;
     }
   }

@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <deque>
-#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -25,7 +23,6 @@
 #include "storage/page/extendible_htable_bucket_page.h"
 #include "storage/page/extendible_htable_directory_page.h"
 #include "storage/page/extendible_htable_header_page.h"
-#include "storage/page/page_guard.h"
 
 namespace bustub {
 
@@ -121,7 +118,8 @@ class DiskExtendibleHashTable {
                                                uint8_t new_local_depth, uint32_t local_depth_mask);
 
   void MigrateEntries(ExtendibleHTableBucketPage<K, V, KC> *old_bucket,
-                      ExtendibleHTableBucketPage<K, V, KC> *new_bucket, uint32_t new_bucket_idx, uint32_t local_depth_mask);
+                      ExtendibleHTableBucketPage<K, V, KC> *new_bucket, uint32_t new_bucket_idx,
+                      uint32_t local_depth_mask);
 
   // member variables
   const std::string index_name_;

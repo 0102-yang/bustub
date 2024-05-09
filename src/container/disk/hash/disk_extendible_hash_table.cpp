@@ -112,7 +112,7 @@ template <typename K, typename V, typename KC>
 auto DiskExtendibleHashTable<K, V, KC>::InsertToNewDirectory(ExtendibleHTableHeaderPage *header, const uint32_t hash,
                                                              const K &key, const V &value) -> bool {
   const uint32_t directory_idx = header->HashToDirectoryIndex(hash);
-  page_id_t directory_page_id = static_cast<page_id_t>(header->GetDirectoryPageId(directory_idx));
+  auto directory_page_id = static_cast<page_id_t>(header->GetDirectoryPageId(directory_idx));
   if (directory_page_id == INVALID_PAGE_ID) {
     // Create new directory.
     auto new_directory_guard = bpm_->NewPageGuarded(&directory_page_id);
@@ -147,7 +147,7 @@ auto DiskExtendibleHashTable<K, V, KC>::InsertToNewBucket(ExtendibleHTableDirect
   /** Split bucket. */
   bool is_split = false;
   while (bucket->IsFull()) {
-    uint8_t local_depth = static_cast<uint8_t>(directory->GetLocalDepth(bucket_idx));
+    auto local_depth = static_cast<uint8_t>(directory->GetLocalDepth(bucket_idx));
     if (local_depth == directory->GetGlobalDepth()) {
       if (directory->Size() == directory->MaxSize()) {
         // There is not enough space for insert.
@@ -161,7 +161,7 @@ auto DiskExtendibleHashTable<K, V, KC>::InsertToNewBucket(ExtendibleHTableDirect
     // Update directory mapping for new local depth.
     ++local_depth;
     const auto old_depth_mask = directory->GetLocalDepthMask(bucket_idx);
-    UpdateDirectoryLocalDepthMapping(directory, bucket_idx, local_depth, old_depth_mask);
+    UpdateDirectoryLocalDepthMapping(directory, bucket_idx, local_depth, old_depth_mask);  // NOLINT
 
     // Create new bucket.
     page_id_t new_bucket_page_id;
@@ -221,11 +221,10 @@ auto DiskExtendibleHashTable<K, V, KC>::Remove(const K &key, Transaction *transa
   auto bucket_guard = bpm_->FetchPageWrite(bucket_page_id);
   auto bucket = bucket_guard.AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
   auto is_removed = bucket->Remove(key, cmp_);
-  if (is_removed) {
-    LOG_TRACE("Remove key %u at bucket page %d.", key_hash, bucket_page_id);
-  } else {
-    LOG_TRACE("Remove key %u at bucket page %d fail.", key_hash, bucket_page_id);
-  }
+  const std::string log_msg =
+      is_removed ? "Successfully removed key %u at bucket page %d." : "Failed to remove key %u at bucket page %d.";
+  LOG_TRACE(log_msg.c_str(), key_hash, bucket_page_id);
+
   if (is_removed && bucket->IsEmpty()) {
     // Delete bucket page.
     bpm_->DeletePage(bucket_page_id);
@@ -241,11 +240,12 @@ auto DiskExtendibleHashTable<K, V, KC>::Remove(const K &key, Transaction *transa
       LOG_TRACE("Delete directory page %d from header %d", directory_page_id, header_page_id_);
     } else {
       const auto merged_bucket_page_id = directory->GetBucketPageId(merged_bucket_idx);
-      const uint8_t merged_bucket_local_depth = static_cast<uint8_t>(directory->GetLocalDepth(bucket_idx) - 1);
-      const uint32_t new_local_depth_mask = (directory->GetLocalDepthMask(bucket_idx)) >> 1;
+      const auto merged_bucket_local_depth = static_cast<uint8_t>(directory->GetLocalDepth(bucket_idx) - 1);
+      const auto new_local_depth_mask = (directory->GetLocalDepthMask(bucket_idx)) >> 1;
       UpdateDirectoryPageIdMapping(directory, merged_bucket_idx, merged_bucket_page_id, new_local_depth_mask);
-      UpdateDirectoryLocalDepthMapping(directory, merged_bucket_idx, merged_bucket_local_depth,
-                                       new_local_depth_mask);
+      // NOLINTBEGIN
+      UpdateDirectoryLocalDepthMapping(directory, merged_bucket_idx, merged_bucket_local_depth, new_local_depth_mask);
+      // NOLINTEND
 
       // If directory can be shrunk, shrink it.
       if (directory->CanShrink()) {

@@ -67,7 +67,7 @@ class LRUKNode {
 class LRUKReplacer {
  public:
   /**
-  * *
+   * *
    * TODO(P1): Add implementation
    *
    * @brief A new LRUKReplacer.

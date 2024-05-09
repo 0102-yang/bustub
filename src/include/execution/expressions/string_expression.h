@@ -24,7 +24,6 @@
 #include "execution/expressions/abstract_expression.h"
 #include "fmt/format.h"
 #include "storage/table/tuple.h"
-#include "type/type.h"
 #include "type/type_id.h"
 #include "type/value_factory.h"
 
@@ -35,16 +34,16 @@ enum class StringExpressionType { Lower, Upper };
 /**
  * StringExpression represents two expressions being computed.
  */
-class StringExpression : public AbstractExpression {
+class StringExpression final : public AbstractExpression {
  public:
-  StringExpression(AbstractExpressionRef arg, StringExpressionType expr_type)
+  StringExpression(AbstractExpressionRef arg, const StringExpressionType expr_type)
       : AbstractExpression({std::move(arg)}, VARCHAR), expr_type_{expr_type} {
     if (GetChildAt(0)->GetReturnType() != VARCHAR) {
       throw NotImplementedException("expect the first arg to be varchar");
     }
   }
 
-  std::string Compute(const std::string &val) const {
+  [[nodiscard]] auto Compute(const std::string &val) const -> std::string {
     // (student): implement upper / lower.
     std::string res;
     switch (expr_type_) {
@@ -62,27 +61,27 @@ class StringExpression : public AbstractExpression {
     return res;
   }
 
-  Value Evaluate(const Tuple *tuple, const Schema &schema) const override {
-    Value val = GetChildAt(0)->Evaluate(tuple, schema);
-    auto str = val.GetAs<char *>();
+  auto Evaluate(const Tuple *tuple, const Schema &schema) const -> Value override {
+    const Value val = GetChildAt(0)->Evaluate(tuple, schema);
+    const auto str = val.GetAs<char *>();
     return ValueFactory::GetVarcharValue(Compute(str));
   }
 
-  Value EvaluateJoin(const Tuple *left_tuple, const Schema &left_schema, const Tuple *right_tuple,
-                     const Schema &right_schema) const override {
-    Value val = GetChildAt(0)->EvaluateJoin(left_tuple, left_schema, right_tuple, right_schema);
-    auto str = val.GetAs<char *>();
+  auto EvaluateJoin(const Tuple *left_tuple, const Schema &left_schema, const Tuple *right_tuple,
+                    const Schema &right_schema) const -> Value override {
+    const Value val = GetChildAt(0)->EvaluateJoin(left_tuple, left_schema, right_tuple, right_schema);
+    const auto str = val.GetAs<char *>();
     return ValueFactory::GetVarcharValue(Compute(str));
   }
 
   /** @return the string representation of the expression node and its children */
-  std::string ToString() const override { return fmt::format("{}({})", expr_type_, *GetChildAt(0)); }
+  [[nodiscard]] auto ToString() const -> std::string override {
+    return fmt::format("{}({})", expr_type_, *GetChildAt(0));
+  }
 
-  BUSTUB_EXPR_CLONE_WITH_CHILDREN(StringExpression);
+  BUSTUB_EXPR_CLONE_WITH_CHILDREN(StringExpression)
 
   StringExpressionType expr_type_;
-
- private:
 };
 }  // namespace bustub
 

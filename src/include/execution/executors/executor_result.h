@@ -56,14 +56,14 @@ class ExecutorResult {
    *
    * @return True if the iterator has not reached the end, false otherwise.
    */
-  [[nodiscard]] bool IsNotEnd() const;
+  [[nodiscard]] auto IsNotEnd() const -> bool;
 
   /**
    * @brief Returns the number of tuples in the ExecutorResult.
    *
    * @return The number of tuples.
    */
-  [[nodiscard]] size_t Size() const { return results_.size(); }
+  [[nodiscard]] auto Size() const -> size_t { return results_.size(); }
 
   /**
    * @brief Checks if the ExecutorResult is not empty.

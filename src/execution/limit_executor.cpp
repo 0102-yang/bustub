@@ -27,10 +27,7 @@ void LimitExecutor::Init() {
 }
 
 auto LimitExecutor::Next(Tuple *tuple, RID *rid) -> bool {
-  while (child_executor_->Next(tuple, rid)) {
-    if (++count_ > limit_) {
-      return false;
-    }
+  while (child_executor_->Next(tuple, rid) && ++count_ <= limit_) {
     return true;
   }
   return false;

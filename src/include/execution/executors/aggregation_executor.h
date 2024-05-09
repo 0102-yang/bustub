@@ -17,11 +17,11 @@
 #include <utility>
 #include <vector>
 
-#include "executor_result.h"
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/expressions/abstract_expression.h"
 #include "execution/plans/aggregation_plan.h"
+#include "executor_result.h"
 #include "storage/table/tuple.h"
 #include "type/value_factory.h"
 

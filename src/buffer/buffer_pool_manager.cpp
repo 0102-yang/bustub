@@ -148,26 +148,19 @@ auto BufferPoolManager::FlushPage(const page_id_t page_id) -> bool {
 
   std::lock_guard lock(latch_);
 
-  if (page_table_.count(page_id) == 0) {
+  auto it = page_table_.find(page_id);
+  if (it == page_table_.end()) {
     return false;
   }
 
-  /*************
-   * Flush page.
-   *************/
-  const frame_id_t page_frame = page_table_.at(page_id);
-  Page *flush_page = &pages_[page_frame];
+  Page *flush_page = &pages_[it->second];
 
   auto finish_promise = DiskScheduler::CreatePromise();
   auto finish_flag = finish_promise.get_future();
   disk_scheduler_->Schedule({true, flush_page->data_, flush_page->page_id_, std::move(finish_promise)});
   flush_page->is_dirty_ = false;
 
-  if (!finish_flag.get()) {
-    return false;
-  }
-
-  return true;
+  return finish_flag.get();
 }
 
 void BufferPoolManager::FlushAllPages() {

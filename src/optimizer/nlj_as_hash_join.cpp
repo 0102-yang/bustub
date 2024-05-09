@@ -67,12 +67,8 @@ auto Optimizer::OptimizeNLJAsHashJoin(const AbstractPlanNodeRef &plan) -> Abstra
       return true;
     }
 
-    if (const auto column_value_expression = std::dynamic_pointer_cast<const ColumnValueExpression>(expression);
-        column_value_expression) {
-      return true;
-    }
-
-    return false;
+    const auto column_value_expression = std::dynamic_pointer_cast<const ColumnValueExpression>(expression);
+    return column_value_expression != nullptr;
   };
   fetch_key_expressions = [&](const AbstractExpressionRef &expression,
                               std::vector<AbstractExpressionRef> &left_key_expressions,

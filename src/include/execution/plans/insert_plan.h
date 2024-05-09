@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "catalog/catalog.h"
-#include "execution/expressions/abstract_expression.h"
 #include "execution/plans/abstract_plan.h"
 
 namespace bustub {
@@ -56,7 +55,9 @@ class InsertPlanNode : public AbstractPlanNode {
   table_oid_t table_oid_;
 
  protected:
-  [[nodiscard]] auto PlanNodeToString() const -> std::string override { return fmt::format("Insert {{ table_oid={} }}", table_oid_); }
+  [[nodiscard]] auto PlanNodeToString() const -> std::string override {
+    return fmt::format("Insert {{ table_oid={} }}", table_oid_);
+  }
 };
 
 }  // namespace bustub
