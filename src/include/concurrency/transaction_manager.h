@@ -44,7 +44,7 @@ struct VersionUndoLink {
 
   friend auto operator!=(const VersionUndoLink &a, const VersionUndoLink &b) { return !(a == b); }
 
-  inline static auto FromOptionalUndoLink(std::optional<UndoLink> undo_link) -> std::optional<VersionUndoLink> {
+  static auto FromOptionalUndoLink(std::optional<UndoLink> undo_link) -> std::optional<VersionUndoLink> {
     if (undo_link.has_value()) {
       return VersionUndoLink{*undo_link};
     }

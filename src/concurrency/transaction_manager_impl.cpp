@@ -25,9 +25,9 @@
 
 namespace bustub {
 
-auto TransactionManager::UpdateUndoLink(RID rid, std::optional<UndoLink> prev_link,
+auto TransactionManager::UpdateUndoLink(const RID rid, std::optional<UndoLink> prev_link,
                                         std::function<bool(std::optional<UndoLink>)> &&check) -> bool {
-  std::function<bool(std::optional<VersionUndoLink>)> wrapper_func =
+  std::function wrapper_func =
       [check](std::optional<VersionUndoLink> link) -> bool {
     if (link.has_value()) {
       return check(link->prev_);
@@ -38,26 +38,24 @@ auto TransactionManager::UpdateUndoLink(RID rid, std::optional<UndoLink> prev_li
                            check != nullptr ? wrapper_func : nullptr);
 }
 
-auto TransactionManager::UpdateVersionLink(RID rid, std::optional<VersionUndoLink> prev_version,
+auto TransactionManager::UpdateVersionLink(const RID rid, std::optional<VersionUndoLink> prev_version,
                                            std::function<bool(std::optional<VersionUndoLink>)> &&check) -> bool {
-  std::unique_lock<std::shared_mutex> lck(version_info_mutex_);
+  std::unique_lock lck(version_info_mutex_);
   std::shared_ptr<PageVersionInfo> pg_ver_info = nullptr;
-  auto iter = version_info_.find(rid.GetPageId());
-  if (iter == version_info_.end()) {
+  if (const auto itr = version_info_.find(rid.GetPageId()); itr == version_info_.end()) {
     pg_ver_info = std::make_shared<PageVersionInfo>();
     version_info_[rid.GetPageId()] = pg_ver_info;
   } else {
-    pg_ver_info = iter->second;
+    pg_ver_info = itr->second;
   }
-  std::unique_lock<std::shared_mutex> lck2(pg_ver_info->mutex_);
+  std::unique_lock lck2(pg_ver_info->mutex_);
   lck.unlock();
-  auto iter2 = pg_ver_info->prev_version_.find(rid.GetSlotNum());
-  if (iter2 == pg_ver_info->prev_version_.end()) {
+  if (const auto itr2 = pg_ver_info->prev_version_.find(rid.GetSlotNum()); itr2 == pg_ver_info->prev_version_.end()) {
     if (check != nullptr && !check(std::nullopt)) {
       return false;
     }
   } else {
-    if (check != nullptr && !check(iter2->second)) {
+    if (check != nullptr && !check(itr2->second)) {
       return false;
     }
   }
@@ -69,44 +67,42 @@ auto TransactionManager::UpdateVersionLink(RID rid, std::optional<VersionUndoLin
   return true;
 }
 
-auto TransactionManager::GetVersionLink(RID rid) -> std::optional<VersionUndoLink> {
-  std::shared_lock<std::shared_mutex> lck(version_info_mutex_);
-  auto iter = version_info_.find(rid.GetPageId());
-  if (iter == version_info_.end()) {
+auto TransactionManager::GetVersionLink(const RID rid) -> std::optional<VersionUndoLink> {
+  std::shared_lock lck(version_info_mutex_);
+  const auto itr = version_info_.find(rid.GetPageId());
+  if (itr == version_info_.end()) {
     return std::nullopt;
   }
-  std::shared_ptr<PageVersionInfo> pg_ver_info = iter->second;
-  std::unique_lock<std::shared_mutex> lck2(pg_ver_info->mutex_);
+  const std::shared_ptr<PageVersionInfo> pg_ver_info = itr->second;
+  std::unique_lock lck2(pg_ver_info->mutex_);
   lck.unlock();
-  auto iter2 = pg_ver_info->prev_version_.find(rid.GetSlotNum());
-  if (iter2 == pg_ver_info->prev_version_.end()) {
+  const auto itr2 = pg_ver_info->prev_version_.find(rid.GetSlotNum());
+  if (itr2 == pg_ver_info->prev_version_.end()) {
     return std::nullopt;
   }
-  return std::make_optional(iter2->second);
+  return std::make_optional(itr2->second);
 }
 
-auto TransactionManager::GetUndoLink(RID rid) -> std::optional<UndoLink> {
-  auto version_link = GetVersionLink(rid);
-  if (version_link.has_value()) {
+auto TransactionManager::GetUndoLink(const RID rid) -> std::optional<UndoLink> {
+  if (auto version_link = GetVersionLink(rid); version_link.has_value()) {
     return version_link->prev_;
   }
   return std::nullopt;
 }
 
 auto TransactionManager::GetUndoLogOptional(UndoLink link) -> std::optional<UndoLog> {
-  std::shared_lock<std::shared_mutex> lck(txn_map_mutex_);
-  auto iter = txn_map_.find(link.prev_txn_);
-  if (iter == txn_map_.end()) {
+  std::shared_lock lck(txn_map_mutex_);
+  const auto itr = txn_map_.find(link.prev_txn_);
+  if (itr == txn_map_.end()) {
     return std::nullopt;
   }
-  auto txn = iter->second;
+  const auto& txn = itr->second;
   lck.unlock();
   return txn->GetUndoLog(link.prev_log_idx_);
 }
 
-auto TransactionManager::GetUndoLog(UndoLink link) -> UndoLog {
-  auto undo_log = GetUndoLogOptional(link);
-  if (undo_log.has_value()) {
+auto TransactionManager::GetUndoLog(const UndoLink link) -> UndoLog {
+  if (auto undo_log = GetUndoLogOptional(link); undo_log.has_value()) {
     return *undo_log;
   }
   throw Exception("undo log not exist");

@@ -36,13 +36,14 @@
 namespace bustub {
 
 auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * {
-  std::unique_lock<std::shared_mutex> l(txn_map_mutex_);
+  std::unique_lock l(txn_map_mutex_);
   auto txn_id = next_txn_id_++;
   auto txn = std::make_unique<Transaction>(txn_id, isolation_level);
   auto *txn_ref = txn.get();
   txn_map_.insert(std::make_pair(txn_id, std::move(txn)));
 
   // TODO(fall2023): set the timestamps here. Watermark updated below.
+  txn_ref->read_ts_ = running_txns_.GetWatermark();
 
   running_txns_.AddTxn(txn_ref->read_ts_);
   return txn_ref;
@@ -51,7 +52,7 @@ auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * 
 auto TransactionManager::VerifyTxn(Transaction *txn) -> bool { return true; }
 
 auto TransactionManager::Commit(Transaction *txn) -> bool {
-  std::unique_lock<std::mutex> commit_lck(commit_mutex_);
+  std::unique_lock commit_lck(commit_mutex_);
 
   // TODO(fall2023): acquire commit ts!
 
@@ -69,7 +70,7 @@ auto TransactionManager::Commit(Transaction *txn) -> bool {
 
   // TODO(fall2023): Implement the commit logic!
 
-  std::unique_lock<std::shared_mutex> lck(txn_map_mutex_);
+  std::unique_lock lck(txn_map_mutex_);
 
   // TODO(fall2023): set commit timestamp + update last committed timestamp here.
 
@@ -87,7 +88,7 @@ void TransactionManager::Abort(Transaction *txn) {
 
   // TODO(fall2023): Implement the abort logic!
 
-  std::unique_lock<std::shared_mutex> lck(txn_map_mutex_);
+  std::unique_lock lck(txn_map_mutex_);
   txn->state_ = TransactionState::ABORTED;
   running_txns_.RemoveTxn(txn->read_ts_);
 }

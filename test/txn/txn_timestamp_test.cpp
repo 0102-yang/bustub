@@ -16,8 +16,8 @@
 
 namespace bustub {
 
-TEST(TxnTsTest, DISABLED_WatermarkPerformance) {  // NOLINT
-  const int txn_n = 1000000;
+TEST(TxnTsTest, WatermarkPerformance) {  // NOLINT
+  constexpr int txn_n = 1000000;
   {
     auto watermark = Watermark(0);
     for (int i = 0; i < txn_n; i++) {
@@ -25,7 +25,7 @@ TEST(TxnTsTest, DISABLED_WatermarkPerformance) {  // NOLINT
       ASSERT_EQ(watermark.GetWatermark(), 0);
     }
     for (int i = 0; i < txn_n; i++) {
-      watermark.UpdateCommitTs(i + 1);
+      watermark.UpdateCommitTs(static_cast<timestamp_t>(i) + 1);
       watermark.RemoveTxn(i);
       ASSERT_EQ(watermark.GetWatermark(), i + 1);
     }
