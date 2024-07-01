@@ -22,7 +22,7 @@ class Watermark {
    * correctly. */
   auto UpdateCommitTs(const timestamp_t commit_ts) { commit_ts_ = commit_ts; }
 
-  auto GetWatermark() const -> timestamp_t {
+  [[nodiscard]] auto GetWatermark() const -> timestamp_t {
     if (current_reads_.empty()) {
       return commit_ts_;
     }

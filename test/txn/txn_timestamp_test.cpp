@@ -48,7 +48,7 @@ TEST(TxnTsTest, WatermarkPerformance) {  // NOLINT
   }
 }
 
-TEST(TxnTsTest, DISABLED_TimestampTracking) {  // NOLINT
+TEST(TxnTsTest, TimestampTracking) {  // NOLINT
   auto bustub = std::make_unique<BustubInstance>();
 
   auto txn0 = bustub->txn_manager_->Begin();
@@ -141,7 +141,5 @@ TEST(TxnTsTest, DISABLED_TimestampTracking) {  // NOLINT
   ASSERT_EQ(txn5->GetTransactionState(), TransactionState::ABORTED);
   ASSERT_EQ(bustub->txn_manager_->GetWatermark(), 5);
 }
-
-// NOLINTEND(bugprone-unchecked-optional-access))
 
 }  // namespace bustub
