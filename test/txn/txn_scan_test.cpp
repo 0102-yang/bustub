@@ -5,7 +5,7 @@ namespace bustub {
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
 
-TEST(TxnScanTest, DISABLED_TupleReconstructTest) {  // NOLINT
+TEST(TxnScanTest, TupleReconstructTest) {  // NOLINT
   auto schema = ParseCreateStatement("a integer,b double,c boolean");
   {
     fmt::println(stderr, "A: only base tuple");
@@ -24,8 +24,8 @@ TEST(TxnScanTest, DISABLED_TupleReconstructTest) {  // NOLINT
       auto tuple = ReconstructTuple(schema.get(), base_tuple, base_meta, {});
       ASSERT_FALSE(tuple.has_value());
     }
-    auto undo_log_1 = UndoLog{false, {true, true, true}, Tuple{{Int(1), Double(2), Bool(false)}, schema.get()}};
     {
+      auto undo_log_1 = UndoLog{false, {true, true, true}, Tuple{{Int(1), Double(2), Bool(false)}, schema.get()}};
       fmt::println(stderr, "B2: verify 1st record");
       auto tuple = ReconstructTuple(schema.get(), base_tuple, base_meta, {undo_log_1});
       ASSERT_TRUE(tuple.has_value());
@@ -203,14 +203,13 @@ TEST(TxnScanTest, DISABLED_ScanTest) {  // NOLINT
 
   auto query = "SELECT * FROM maintable";
   fmt::println(stderr, "A: Verify txn0");
-  WithTxn(txn0, QueryShowResult(*bustub, _var, _txn, query, AnyResult{}));
-  fmt::println(stderr, "B: Verify txn1");
+  WithTxn(txn0, QueryShowResult(*bustub, _var, _txn, query, AnyResult{})) fmt::println(stderr, "B: Verify txn1");
   WithTxn(txn1, QueryShowResult(*bustub, _var, _txn, query,
                                 AnyResult{
                                     {"2", "decimal_null", "boolean_null"},
                                     {"4", "4.000000", "true"},
                                     {"7", "decimal_null", "boolean_null"},
-                                }));
+                                }))
 
   // hidden tests... this is the only hidden test case among task 1, 2, 3. We recommend you to implement `TxnMgrDbg`
   // function, draw the version chain out, and think of what should be read by each txn.

@@ -71,16 +71,16 @@ struct UndoLink {
 };
 
 struct UndoLog {
+  /* Whether this log is a deletion marker */
+  bool is_deleted_;
   /* The fields modified by this undo log */
   std::vector<bool> modified_fields_;
   /* The modified fields */
   Tuple tuple_;
-  /* Undo log prev version */
-  UndoLink prev_version_{};
   /* Timestamp of this undo log */
   timestamp_t ts_{INVALID_TS};
-  /* Whether this log is a deletion marker */
-  bool is_deleted_;
+  /* Undo log prev version */
+  UndoLink prev_version_{};
 };
 
 /**

@@ -110,7 +110,7 @@ class TransactionManager {
   auto GetUndoLog(UndoLink link) -> UndoLog;
 
   /** @brief Get the lowest read timestamp in the system. */
-  auto GetWatermark() -> timestamp_t { return running_txns_.GetWatermark(); }
+  auto GetWatermark() const -> timestamp_t { return running_txns_.GetWatermark(); }
 
   /** @brief Stop-the-world garbage collection. Will be called only when all transactions are not accessing the table
    * heap. */
