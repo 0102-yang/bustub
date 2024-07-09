@@ -9,7 +9,6 @@
 // Copyright (c) 2015-2021, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
-
 #include "execution/executors/topn_check_executor.h"
 #include "execution/executors/topn_executor.h"
 

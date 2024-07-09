@@ -13,6 +13,7 @@
 #include "execution/executors/nested_loop_join_executor.h"
 #include "binder/table_ref/bound_join_ref.h"
 #include "common/exception.h"
+#include "common/logger.h"
 
 namespace bustub {
 

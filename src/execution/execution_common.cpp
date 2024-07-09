@@ -1,13 +1,10 @@
 #include <algorithm>
 
 #include "catalog/catalog.h"
-#include "common/config.h"
-#include "common/macros.h"
 #include "concurrency/transaction_manager.h"
 #include "execution/execution_common.h"
 #include "fmt/core.h"
 #include "storage/table/table_heap.h"
-#include "type/value.h"
 #include "type/value_factory.h"
 
 namespace bustub {

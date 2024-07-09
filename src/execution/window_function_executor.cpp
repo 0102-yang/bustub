@@ -2,6 +2,7 @@
 
 #include <numeric>
 
+#include "common/logger.h"
 #include "execution/plans/window_plan.h"
 #include "storage/table/tuple.h"
 #include "type/value_factory.h"

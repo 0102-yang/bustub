@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "execution/executors/hash_join_executor.h"
-
+#include "common/logger.h"
 #include "common/util/hash_util.h"
 
 namespace bustub {

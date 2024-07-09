@@ -1,11 +1,11 @@
 #include <algorithm>
 #include <memory>
-#include "common/exception.h"
+
+#include "common/logger.h"
 #include "execution/expressions/column_value_expression.h"
 #include "execution/expressions/comparison_expression.h"
 #include "execution/expressions/logic_expression.h"
 #include "execution/plans/abstract_plan.h"
-#include "execution/plans/filter_plan.h"
 #include "execution/plans/hash_join_plan.h"
 #include "execution/plans/nested_loop_join_plan.h"
 #include "optimizer/optimizer.h"

@@ -1,4 +1,5 @@
 #include "execution/executors/topn_executor.h"
+#include "common/logger.h"
 
 namespace bustub {
 

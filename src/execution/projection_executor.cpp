@@ -1,4 +1,5 @@
 #include "execution/executors/projection_executor.h"
+#include "common/logger.h"
 #include "storage/table/tuple.h"
 
 namespace bustub {

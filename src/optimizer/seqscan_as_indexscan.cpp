@@ -1,3 +1,4 @@
+#include "common/logger.h"
 #include "execution/expressions/column_value_expression.h"
 #include "execution/plans/index_scan_plan.h"
 #include "execution/plans/seq_scan_plan.h"
@@ -24,7 +25,7 @@ auto Optimizer::OptimizeSeqScanAsIndexScan(const AbstractPlanNodeRef &plan) cons
   }
 
   // Checks if the filter predicate is nullptr.
-  const auto& seq_scan_plan = dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
+  const auto &seq_scan_plan = dynamic_cast<const SeqScanPlanNode &>(*optimized_plan);
   if (seq_scan_plan.filter_predicate_ == nullptr) {
     LOG_TRACE("Failed to optimize %s to index-scan plan due to filter predicate is nullptr",
               seq_scan_plan.ToString().c_str());

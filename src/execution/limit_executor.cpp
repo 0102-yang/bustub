@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "execution/executors/limit_executor.h"
+#include "common/logger.h"
 
 namespace bustub {
 

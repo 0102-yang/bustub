@@ -1,3 +1,4 @@
+#include "common/logger.h"
 #include "execution/plans/limit_plan.h"
 #include "execution/plans/sort_plan.h"
 #include "execution/plans/topn_plan.h"

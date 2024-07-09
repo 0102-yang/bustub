@@ -9,10 +9,11 @@
 // Copyright (c) 2015-2021, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
+#include "execution/executors/delete_executor.h"
 
 #include <memory>
 
-#include "execution/executors/delete_executor.h"
+#include "common/logger.h"
 
 namespace bustub {
 

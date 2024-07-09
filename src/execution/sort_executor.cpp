@@ -1,4 +1,5 @@
 #include "execution/executors/sort_executor.h"
+#include "common/logger.h"
 
 namespace bustub {
 

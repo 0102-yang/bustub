@@ -9,10 +9,13 @@
 // Copyright (c) 2015-2021, Carnegie Mellon University Database Group
 //
 //===----------------------------------------------------------------------===//
+
+#include "execution/executors/aggregation_executor.h"
+
 #include <memory>
 #include <vector>
 
-#include "execution/executors/aggregation_executor.h"
+#include "common/logger.h"
 
 namespace bustub {
 
