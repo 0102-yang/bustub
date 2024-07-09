@@ -4,39 +4,37 @@
 #include <functional>
 #include <future>  // NOLINT
 #include <memory>
-#include <stdexcept>
 #include <thread>  // NOLINT
 
 #include "common/bustub_instance.h"
 #include "concurrency/transaction.h"
 #include "concurrency/transaction_manager.h"
 #include "concurrency/watermark.h"
-#include "fmt/core.h"
 #include "gtest/gtest.h"
 
 namespace bustub {
 
 TEST(TxnTsTest, WatermarkPerformance) {  // NOLINT
-  constexpr int txn_n = 1000000;
+  constexpr timestamp_t txn_n = 1000000;
   {
     auto watermark = Watermark(0);
-    for (int i = 0; i < txn_n; i++) {
+    for (timestamp_t i = 0; i < txn_n; i++) {
       watermark.AddTxn(i);
       ASSERT_EQ(watermark.GetWatermark(), 0);
     }
-    for (int i = 0; i < txn_n; i++) {
-      watermark.UpdateCommitTs(static_cast<timestamp_t>(i) + 1);
+    for (timestamp_t i = 0; i < txn_n; i++) {
+      watermark.UpdateCommitTs(i + 1);
       watermark.RemoveTxn(i);
       ASSERT_EQ(watermark.GetWatermark(), i + 1);
     }
   }
   {
     auto watermark = Watermark(0);
-    for (int i = 0; i < txn_n; i++) {
+    for (timestamp_t i = 0; i < txn_n; i++) {
       watermark.AddTxn(i);
       ASSERT_EQ(watermark.GetWatermark(), 0);
     }
-    for (int i = 0; i < txn_n; i++) {
+    for (timestamp_t i = 0; i < txn_n; i++) {
       watermark.UpdateCommitTs(i + 1);
       watermark.RemoveTxn(txn_n - i - 1);
       if (i == txn_n - 1) {

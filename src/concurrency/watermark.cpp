@@ -5,7 +5,7 @@
 namespace bustub {
 
 auto Watermark::AddTxn(const timestamp_t read_ts) -> void {
-  if (read_ts < commit_ts_) {
+  if (read_ts < latest_commit_timestamp_) {
     throw Exception("read ts < commit ts");
   }
 
@@ -26,7 +26,7 @@ auto Watermark::RemoveTxn(const timestamp_t read_ts) -> void {
 
       // Update watermark.
       if (current_reads_.empty()) {
-        watermark_ = commit_ts_;
+        watermark_ = latest_commit_timestamp_;
       } else {
         watermark_ = current_reads_.begin()->first;
       }
