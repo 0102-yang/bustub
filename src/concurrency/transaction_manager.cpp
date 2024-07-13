@@ -43,7 +43,7 @@ auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * 
   txn_map_.insert(std::make_pair(txn_id, std::move(txn)));
 
   // TODO(fall2023): set the timestamps here. Watermark updated below.
-  txn_ref->read_ts_ = running_txns_.commit_ts_;
+  txn_ref->read_ts_ = running_txns_.GetLatestCommitTimestamp();
   running_txns_.AddTxn(txn_ref->read_ts_);
   return txn_ref;
 }

@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/seq_scan_plan.h"
 #include "storage/table/tuple.h"
@@ -49,7 +47,14 @@ class SeqScanExecutor final : public AbstractExecutor {
  private:
   /** The sequential scan plan node to be executed */
   const SeqScanPlanNode *plan_;
+  TableIterator table_iterator_;
 
-  std::unique_ptr<TableIterator> table_iterator_;
+  [[nodiscard]] TableIterator MakeIterator() const {
+    const auto *table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
+    return table_info->table_->MakeIterator();
+  }
+
+  auto RetrieveTuple(const Tuple &next_base_tuple, const TupleMeta &next_base_meta, const RID &next_rid, const Schema& schema) const
+    -> std::optional<Tuple>;
 };
 }  // namespace bustub

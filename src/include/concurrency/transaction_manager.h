@@ -19,9 +19,7 @@
 #include <optional>
 #include <shared_mutex>
 #include <unordered_map>
-#include <unordered_set>
 
-#include "catalog/schema.h"
 #include "common/config.h"
 #include "concurrency/transaction.h"
 #include "concurrency/watermark.h"

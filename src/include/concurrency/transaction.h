@@ -16,9 +16,7 @@
 #include <atomic>
 #include <bitset>
 #include <cstddef>
-#include <deque>
 #include <limits>
-#include <list>
 #include <memory>
 #include <mutex>  // NOLINT
 #include <string>
@@ -29,9 +27,7 @@
 #include <vector>
 
 #include "common/config.h"
-#include "common/logger.h"
 #include "execution/expressions/abstract_expression.h"
-#include "storage/page/page.h"
 #include "storage/table/tuple.h"
 
 namespace bustub {

@@ -32,10 +32,11 @@ class TableIterator {
   friend class Cursor;
 
  public:
-  DISALLOW_COPY(TableIterator);
+  DISALLOW_COPY(TableIterator)
 
   TableIterator(TableHeap *table_heap, RID rid, RID stop_at_rid);
   TableIterator(TableIterator &&) = default;
+  TableIterator &operator=(TableIterator &&) = default;
 
   ~TableIterator() = default;
 
@@ -52,7 +53,7 @@ class TableIterator {
   RID rid_;
 
   // When creating table iterator, we will record the maximum RID that we should scan.
-  // Otherwise we will have dead loops when updating while scanning. (In project 4, update should be implemented as
+  // Otherwise, we will have dead loops when updating while scanning. (In project 4, update should be implemented as
   // deletion + insertion.)
   RID stop_at_rid_;
 };
