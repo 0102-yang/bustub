@@ -5,6 +5,7 @@ RUN apt-get -y update && \
 	apt-get -y upgrade && \
 	apt-get -y install --no-install-recommends \
     clang-14 \
+    clangd-14 \
     libclang-rt-14-dev \
     clang-format-14 \
     clang-tidy-14 \
