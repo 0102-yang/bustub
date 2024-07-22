@@ -45,6 +45,7 @@ install() {
         18.04) install_linux ;;
         20.04) install_linux ;;
         22.04) install_linux ;;
+        24.04) install_linux ;;
         *) give_up ;;
       esac
       ;;
@@ -83,21 +84,33 @@ install_mac() {
 }
 
 install_linux() {
+  # Set timezone.
+  export DEBIAN_FRONTEND=noninteractive
+  export TZ=Asia/Shanghai
+  sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
   # Update apt-get.
   apt-get -y update
   # Install packages.
-  apt-get -y install \
+  apt-get -y install --no-install-recommends \
       build-essential \
       clang-14 \
+      clangd-14 \
       clang-format-14 \
       clang-tidy-14 \
+      libclang-rt-14-dev \
       cmake \
       doxygen \
       git \
+      gdb \
+      ninja-build \
+      doxygen \
       pkg-config \
       zlib1g-dev \
       libelf-dev \
-      libdwarf-dev
+      libdwarf-dev \
+      libdw-dev \
+      binutils-dev
 }
 
 main "$@"
