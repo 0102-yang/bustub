@@ -16,38 +16,47 @@
 #include <memory>
 
 #include "common/logger.h"
+#include "concurrency/transaction_manager.h"
 
 namespace bustub {
 
 InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+    : AbstractExecutor(exec_ctx),
+      plan_(plan),
+      child_executor_(std::move(child_executor)),
+      executor_result_(&GetOutputSchema()) {
   LOG_DEBUG("Initialize insert executor.\n%s", plan_->ToString().c_str());
 }
 
-void InsertExecutor::Init() { child_executor_->Init(); }
+void InsertExecutor::Init() {
+  child_executor_->Init();
 
-auto InsertExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
-  LOG_TRACE("Insert executor Next");
-
-  if (is_insertion_finish_) {
-    return false;
+  if (executor_result_.IsNotEmpty()) {
+    executor_result_.SetOrResetBegin();
+    return;
   }
 
   const auto table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
   const auto indexes_info = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
-  int32_t inserted_rows_count = 0;
-  Tuple child_tuple;
+  auto *transaction = exec_ctx_->GetTransaction();
+  auto *transaction_manager = exec_ctx_->GetTransactionManager();
 
-  while (child_executor_->Next(&child_tuple, rid)) {
-    TupleMeta inserted_tuple_meta;
-    inserted_tuple_meta.is_deleted_ = false;
-    inserted_tuple_meta.ts_ = 0;
+  int32_t inserted_rows_count = 0;
+  RID child_rid;
+  Tuple child_tuple;
+  while (child_executor_->Next(&child_tuple, &child_rid)) {
+    TupleMeta inserted_tuple_meta{transaction->GetTransactionTempTs(), false};
 
     // Insert tuple.
     if (const auto inserted_rid = table_info->table_->InsertTuple(inserted_tuple_meta, child_tuple); inserted_rid) {
       LOG_TRACE("Insert new entry: RID %s, tuple %s", inserted_rid->ToString().c_str(),
                 child_tuple.ToString(&child_executor_->GetOutputSchema()).c_str());
+
+      // Insert to write set and version chain of transaction.
+      transaction->AppendWriteSet(plan_->table_oid_, *inserted_rid);
+      const auto &prev_link = transaction_manager->GetUndoLink(*inserted_rid);
+      transaction_manager->UpdateUndoLink(*inserted_rid, prev_link);
 
       // Insert indexes.
       for (const auto index_info : indexes_info) {
@@ -61,9 +70,17 @@ auto InsertExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
     }
   }
 
-  is_insertion_finish_ = true;  // Generate inserted rows count.
-  *tuple = Tuple({Value{INTEGER, inserted_rows_count}}, &GetOutputSchema());
-  return true;
+  executor_result_.EmplaceBack(Tuple({Value{INTEGER, inserted_rows_count}}, &GetOutputSchema()));
+  executor_result_.SetOrResetBegin();
+}
+
+auto InsertExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
+  LOG_TRACE("Insert executor Next");
+  while (executor_result_.IsNotEnd()) {
+    *tuple = executor_result_.Next();
+    return true;
+  }
+  return false;
 }
 
 }  // namespace bustub

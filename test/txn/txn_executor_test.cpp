@@ -5,14 +5,14 @@ namespace bustub {
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
 
-TEST(TxnExecutorTest, DISABLED_InsertTest) {  // NOLINT
-  auto bustub = std::make_unique<BustubInstance>();
-  auto empty_table = IntResult{};
+TEST(TxnExecutorTest, InsertTest) {  // NOLINT
+  const auto bustub = std::make_unique<BustubInstance>();
+  const auto empty_table = IntResult{};
   Execute(*bustub, "CREATE TABLE maintable(a int)");
-  auto table_info = bustub->catalog_->GetTable("maintable");
-  auto txn1 = BeginTxn(*bustub, "txn1");
-  auto txn2 = BeginTxn(*bustub, "txn2");
-  auto txn_ref = BeginTxn(*bustub, "txn_ref");
+  const auto table_info = bustub->catalog_->GetTable("maintable");
+  const auto txn1 = BeginTxn(*bustub, "txn1");
+  const auto txn2 = BeginTxn(*bustub, "txn2");
+  const auto txn_ref = BeginTxn(*bustub, "txn_ref");
 
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (1)"));
   WithTxn(txn2, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (2)"));
@@ -25,18 +25,18 @@ TEST(TxnExecutorTest, DISABLED_InsertTest) {  // NOLINT
   fmt::println(stderr, "B: check scan txn2");
   WithTxn(txn2, QueryShowResult(*bustub, _var, _txn, query, IntResult{{2}}));
 
-  auto txn3 = BeginTxn(*bustub, "txn3");
+  const auto txn3 = BeginTxn(*bustub, "txn3");
   fmt::println(stderr, "C: check scan txn3");
   WithTxn(txn3, QueryShowResult(*bustub, _var, _txn, query, empty_table));
   WithTxn(txn_ref, QueryShowResult(*bustub, _var, _txn, query, empty_table));
 }
 
 TEST(TxnExecutorTest, DISABLED_InsertCommitTest) {  // NOLINT
-  auto bustub = std::make_unique<BustubInstance>();
+  const auto bustub = std::make_unique<BustubInstance>();
   Execute(*bustub, "CREATE TABLE maintable(a int)");
-  auto table_info = bustub->catalog_->GetTable("maintable");
-  auto txn1 = BeginTxn(*bustub, "txn1");
-  auto txn2 = BeginTxn(*bustub, "txn2");
+  const auto table_info = bustub->catalog_->GetTable("maintable");
+  const auto txn1 = BeginTxn(*bustub, "txn1");
+  const auto txn2 = BeginTxn(*bustub, "txn2");
 
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (1)"));
   WithTxn(txn2, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (2)"));
@@ -50,9 +50,9 @@ TEST(TxnExecutorTest, DISABLED_InsertCommitTest) {  // NOLINT
   WithTxn(txn1, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after commit txn1", bustub->txn_manager_.get(), table_info, table_info->table_.get());
 
-  auto txn_ref = BeginTxn(*bustub, "txn_ref");
+  const auto txn_ref = BeginTxn(*bustub, "txn_ref");
 
-  auto txn3 = BeginTxn(*bustub, "txn3");
+  const auto txn3 = BeginTxn(*bustub, "txn3");
   fmt::println(stderr, "C: check scan txn3");
   WithTxn(txn3, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}}));
   fmt::println(stderr, "D: check scan txn2");
@@ -66,7 +66,7 @@ TEST(TxnExecutorTest, DISABLED_InsertCommitTest) {  // NOLINT
   WithTxn(txn3, CommitTxn(*bustub, _var, _txn));
   WithTxn(txn2, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after commit txn2", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-  auto txn4 = BeginTxn(*bustub, "txn4");
+  const auto txn4 = BeginTxn(*bustub, "txn4");
   fmt::println(stderr, "G: check scan txn4");
   WithTxn(txn4, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}, {3}}));
   WithTxn(txn4, CommitTxn(*bustub, _var, _txn));
@@ -74,11 +74,11 @@ TEST(TxnExecutorTest, DISABLED_InsertCommitTest) {  // NOLINT
 }
 
 TEST(TxnExecutorTest, DISABLED_InsertDeleteTest) {  // NOLINT
-  auto bustub = std::make_unique<BustubInstance>();
-  auto empty_table = IntResult{};
+  const auto bustub = std::make_unique<BustubInstance>();
+  const auto empty_table = IntResult{};
   Execute(*bustub, "CREATE TABLE maintable(a int)");
-  auto table_info = bustub->catalog_->GetTable("maintable");
-  auto txn1 = BeginTxn(*bustub, "txn1");
+  const auto table_info = bustub->catalog_->GetTable("maintable");
+  const auto txn1 = BeginTxn(*bustub, "txn1");
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (1)"));
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (2)"));
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (3)"));
@@ -89,14 +89,14 @@ TEST(TxnExecutorTest, DISABLED_InsertDeleteTest) {  // NOLINT
   WithTxn(txn1, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   WithTxn(txn1, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after commit", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-  auto txn_ref = BeginTxn(*bustub, "txn_ref");
-  auto txn2 = BeginTxn(*bustub, "txn2");
+  const auto txn_ref = BeginTxn(*bustub, "txn_ref");
+  const auto txn2 = BeginTxn(*bustub, "txn2");
   fmt::println(stderr, "B: check scan txn2");
   WithTxn(txn2, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   WithTxn(txn2, ExecuteTxn(*bustub, _var, _txn, "DELETE FROM maintable WHERE a = 2"));
   TxnMgrDbg("after txn2 delete", bustub->txn_manager_.get(), table_info, table_info->table_.get());
   WithTxn(txn2, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}}));
-  auto txn4 = BeginTxn(*bustub, "txn4");
+  const auto txn4 = BeginTxn(*bustub, "txn4");
   fmt::println(stderr, "C: check scan txn4");
   WithTxn(txn4, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   WithTxn(txn4, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (4)"));
@@ -113,7 +113,7 @@ TEST(TxnExecutorTest, DISABLED_InsertDeleteTest) {  // NOLINT
   WithTxn(txn2, CommitTxn(*bustub, _var, _txn));
   WithTxn(txn4, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after commit", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-  auto txn5 = BeginTxn(*bustub, "txn5");
+  const auto txn5 = BeginTxn(*bustub, "txn5");
   fmt::println(stderr, "F: check scan txn5");
   WithTxn(txn5, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {4}, {5}}));
   WithTxn(txn5, ExecuteTxn(*bustub, _var, _txn, "DELETE FROM maintable"));
@@ -123,11 +123,11 @@ TEST(TxnExecutorTest, DISABLED_InsertDeleteTest) {  // NOLINT
 }
 
 TEST(TxnExecutorTest, DISABLED_InsertDeleteConflictTest) {  // NOLINT
-  auto bustub = std::make_unique<BustubInstance>();
-  auto empty_table = IntResult{};
+  const auto bustub = std::make_unique<BustubInstance>();
+  const auto empty_table = IntResult{};
   Execute(*bustub, "CREATE TABLE maintable(a int)");
-  auto table_info = bustub->catalog_->GetTable("maintable");
-  auto txn1 = BeginTxn(*bustub, "txn1");
+  const auto table_info = bustub->catalog_->GetTable("maintable");
+  const auto txn1 = BeginTxn(*bustub, "txn1");
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (1)"));
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (2)"));
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (3)"));
@@ -138,19 +138,19 @@ TEST(TxnExecutorTest, DISABLED_InsertDeleteConflictTest) {  // NOLINT
   WithTxn(txn1, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   WithTxn(txn1, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after commit", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-  auto txn2 = BeginTxn(*bustub, "txn2");
+  const auto txn2 = BeginTxn(*bustub, "txn2");
   fmt::println(stderr, "B: check scan txn2");
   WithTxn(txn2, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   WithTxn(txn2, ExecuteTxn(*bustub, _var, _txn, "DELETE FROM maintable WHERE a = 2"));
   TxnMgrDbg("after txn2 delete", bustub->txn_manager_.get(), table_info, table_info->table_.get());
   WithTxn(txn2, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}}));
-  auto txn3 = BeginTxn(*bustub, "txn3");
+  const auto txn3 = BeginTxn(*bustub, "txn3");
   fmt::println(stderr, "C: check scan txn3");
   WithTxn(txn3, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   fmt::println(stderr, "D: taint txn3");
   WithTxn(txn3, ExecuteTxnTainted(*bustub, _var, _txn, "DELETE FROM maintable WHERE a = 2"));
   TxnMgrDbg("after txn3 tainted", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-  auto txn4 = BeginTxn(*bustub, "txn4");
+  const auto txn4 = BeginTxn(*bustub, "txn4");
   fmt::println(stderr, "E: check scan txn4");
   WithTxn(txn4, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {2}}));
   WithTxn(txn4, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO maintable VALUES (4)"));
@@ -167,18 +167,18 @@ TEST(TxnExecutorTest, DISABLED_InsertDeleteConflictTest) {  // NOLINT
   WithTxn(txn2, CommitTxn(*bustub, _var, _txn));
   WithTxn(txn4, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after commit", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-  auto txn5 = BeginTxn(*bustub, "txn5");
+  const auto txn5 = BeginTxn(*bustub, "txn5");
   fmt::println(stderr, "H: check scan txn5");
   WithTxn(txn5, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {4}, {5}}));
   fmt::println(stderr, "I: commit txn 6");
-  auto txn6 = BeginTxn(*bustub, "txn6");
+  const auto txn6 = BeginTxn(*bustub, "txn6");
   WithTxn(txn6, ExecuteTxn(*bustub, _var, _txn, "DELETE FROM maintable WHERE a = 5"));
   TxnMgrDbg("after txn6 deletes", bustub->txn_manager_.get(), table_info, table_info->table_.get());
   WithTxn(txn6, CommitTxn(*bustub, _var, _txn));
   TxnMgrDbg("after txn6 commits", bustub->txn_manager_.get(), table_info, table_info->table_.get());
   fmt::println(stderr, "J: taint txn5");
   WithTxn(txn5, ExecuteTxnTainted(*bustub, _var, _txn, "DELETE FROM maintable WHERE a = 5"));
-  auto txn7 = BeginTxn(*bustub, "txn7");
+  const auto txn7 = BeginTxn(*bustub, "txn7");
   fmt::println(stderr, "I: check scan txn7");
   WithTxn(txn7, QueryShowResult(*bustub, _var, _txn, query, IntResult{{1}, {4}}));
   WithTxn(txn7, ExecuteTxn(*bustub, _var, _txn, "DELETE FROM maintable"));
@@ -188,12 +188,12 @@ TEST(TxnExecutorTest, DISABLED_InsertDeleteConflictTest) {  // NOLINT
 
 TEST(TxnExecutorTest, DISABLED_UpdateTest1) {  // NOLINT
   fmt::println(stderr, "--- UpdateTest1: no undo log ---");
-  auto bustub = std::make_unique<BustubInstance>();
-  auto empty_table = IntResult{};
+  const auto bustub = std::make_unique<BustubInstance>();
+  const auto empty_table = IntResult{};
   Execute(*bustub, "CREATE TABLE table1(a int, b int, c int)");
-  auto table_info = bustub->catalog_->GetTable("table1");
-  auto txn_ref = BeginTxn(*bustub, "txn_ref");
-  auto txn1 = BeginTxn(*bustub, "txn1");
+  const auto table_info = bustub->catalog_->GetTable("table1");
+  const auto txn_ref = BeginTxn(*bustub, "txn_ref");
+  const auto txn1 = BeginTxn(*bustub, "txn1");
   WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO table1 VALUES (1, 1, 1)"));
   TxnMgrDbg("after insert", bustub->txn_manager_.get(), table_info, table_info->table_.get());
   const std::string query = "SELECT * FROM table1";
@@ -246,7 +246,7 @@ TEST(TxnExecutorTest, DISABLED_UpdateTest1) {  // NOLINT
   WithTxn(txn_ref, QueryShowResult(*bustub, _var, _txn, query, empty_table));
   WithTxn(txn1, CheckUndoLogNum(*bustub, _var, _txn, 0));
   WithTxn(txn1, CommitTxn(*bustub, _var, _txn));
-  auto txn2 = BeginTxn(*bustub, "txn2");
+  const auto txn2 = BeginTxn(*bustub, "txn2");
   fmt::println(stderr, "H: check scan txn2");
   WithTxn(txn2, QueryShowResult(*bustub, _var, _txn, query, empty_table));
   WithTxn(txn2, CommitTxn(*bustub, _var, _txn));
@@ -414,16 +414,16 @@ TEST(TxnExecutorTest, DISABLED_UpdateTestWithUndoLog) {  // NOLINT
 TEST(TxnExecutorTest, DISABLED_UpdateConflict) {  // NOLINT
   {
     fmt::println(stderr, "--- UpdateConflict1: simple case, insert and two txn update it ---");
-    auto bustub = std::make_unique<BustubInstance>();
+    const auto bustub = std::make_unique<BustubInstance>();
     Execute(*bustub, "CREATE TABLE table1(a int, b int, c int)");
-    auto table_info = bustub->catalog_->GetTable("table1");
-    auto txn0 = BeginTxn(*bustub, "txn0");
+    const auto table_info = bustub->catalog_->GetTable("table1");
+    const auto txn0 = BeginTxn(*bustub, "txn0");
     WithTxn(txn0, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO table1 VALUES (0, 0, 0)"));
     WithTxn(txn0, CommitTxn(*bustub, _var, _txn));
-    auto txn_ref = BeginTxn(*bustub, "txn_ref");
+    const auto txn_ref = BeginTxn(*bustub, "txn_ref");
     TxnMgrDbg("after initialize", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-    auto txn1 = BeginTxn(*bustub, "txn1");
-    auto txn2 = BeginTxn(*bustub, "txn2");
+    const auto txn1 = BeginTxn(*bustub, "txn1");
+    const auto txn2 = BeginTxn(*bustub, "txn2");
     WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "UPDATE table1 SET a = 1"));
     TxnMgrDbg("after 1st update", bustub->txn_manager_.get(), table_info, table_info->table_.get());
     WithTxn(txn2, ExecuteTxnTainted(*bustub, _var, _txn, "UPDATE table1 SET b = 2"));
@@ -435,18 +435,18 @@ TEST(TxnExecutorTest, DISABLED_UpdateConflict) {  // NOLINT
   }
   {
     fmt::println(stderr, "--- UpdateConflict2: complex case with version chain ---");
-    auto bustub = std::make_unique<BustubInstance>();
+    const auto bustub = std::make_unique<BustubInstance>();
     Execute(*bustub, "CREATE TABLE table1(a int, b int, c int)");
-    auto table_info = bustub->catalog_->GetTable("table1");
-    auto txn0 = BeginTxn(*bustub, "txn0");
+    const auto table_info = bustub->catalog_->GetTable("table1");
+    const auto txn0 = BeginTxn(*bustub, "txn0");
     WithTxn(txn0, ExecuteTxn(*bustub, _var, _txn, "INSERT INTO table1 VALUES (0, 0, 0), (1, 1, 1)"));
     WithTxn(txn0, CommitTxn(*bustub, _var, _txn));
     TxnMgrDbg("after initialize", bustub->txn_manager_.get(), table_info, table_info->table_.get());
-    auto txn1 = BeginTxn(*bustub, "txn1");
-    auto txn2 = BeginTxn(*bustub, "txn2");
-    auto txn3 = BeginTxn(*bustub, "txn3");
-    auto txn4 = BeginTxn(*bustub, "txn4");
-    auto txn_ref = BeginTxn(*bustub, "txn_ref");
+    const auto txn1 = BeginTxn(*bustub, "txn1");
+    const auto txn2 = BeginTxn(*bustub, "txn2");
+    const auto txn3 = BeginTxn(*bustub, "txn3");
+    const auto txn4 = BeginTxn(*bustub, "txn4");
+    const auto txn_ref = BeginTxn(*bustub, "txn_ref");
     WithTxn(txn1, ExecuteTxn(*bustub, _var, _txn, "UPDATE table1 SET b = 233 WHERE a = 0"));
     WithTxn(txn1, CommitTxn(*bustub, _var, _txn));
     WithTxn(txn2, ExecuteTxn(*bustub, _var, _txn, "UPDATE table1 SET b = 2333 WHERE a = 1"));
@@ -458,7 +458,7 @@ TEST(TxnExecutorTest, DISABLED_UpdateConflict) {  // NOLINT
     WithTxn(txn2, CommitTxn(*bustub, _var, _txn));
     TxnMgrDbg("after commit", bustub->txn_manager_.get(), table_info, table_info->table_.get());
     WithTxn(txn_ref, QueryShowResult(*bustub, _var, _txn, "SELECT * FROM table1", IntResult{{0, 0, 0}, {1, 1, 1}}));
-    auto txn5 = BeginTxn(*bustub, "txn5");
+    const auto txn5 = BeginTxn(*bustub, "txn5");
     WithTxn(txn5, QueryShowResult(*bustub, _var, _txn, "SELECT * FROM table1", IntResult{{0, 233, 0}, {1, 2333, 1}}));
     TableHeapEntryNoMoreThan(*bustub, table_info, 2);
   }

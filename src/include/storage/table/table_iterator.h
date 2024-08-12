@@ -40,11 +40,11 @@ class TableIterator {
 
   ~TableIterator() = default;
 
-  auto GetTuple() -> std::pair<TupleMeta, Tuple>;
+  auto GetTuple() const -> std::pair<TupleMeta, Tuple>;
 
-  auto GetRID() -> RID;
+  auto GetRID() const -> RID;
 
-  auto IsEnd() -> bool;
+  auto IsEnd() const -> bool;
 
   auto operator++() -> TableIterator &;
 

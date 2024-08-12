@@ -46,7 +46,7 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
     ++table_iterator_;
 
     if (predicate && !predicate->Evaluate(&next_base_tuple, output_schema).GetAs<bool>()) {
-      LOG_TRACE("Failed to get tuple %s due to dissatisfy conditions", next_tuple.ToString(&output_schema).c_str());
+      LOG_TRACE("Failed to get tuple %s due to dissatisfy conditions", next_base_tuple.ToString(&output_schema).c_str());
       continue;
     }
 
