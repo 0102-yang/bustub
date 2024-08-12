@@ -50,20 +50,20 @@ class MockScanExecutor : public AbstractExecutor {
   auto Next(Tuple *tuple, RID *rid) -> bool override;
 
   /** @return The output schema for the sequential scan */
-  auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
+  [[nodiscard]] auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
  private:
   /** @return A dummy tuple according to the output schema */
-  auto MakeDummyTuple() const -> Tuple;
+  [[nodiscard]] auto MakeDummyTuple() const -> Tuple;
 
   /** @return A dummy RID value */
   static auto MakeDummyRID() -> RID;
 
   /** MockScanExecutor::Next() returns `true` when scan is incomplete */
-  constexpr static const bool EXECUTOR_ACTIVE{true};
+  constexpr static bool EXECUTOR_ACTIVE{true};
 
   /** MockScanExecutor::Next() returns `false` when scan is complete */
-  constexpr static const bool EXECUTOR_EXHAUSTED{false};
+  constexpr static bool EXECUTOR_EXHAUSTED{false};
 
   /** The plan node for the scan */
   const MockScanPlanNode *plan_;

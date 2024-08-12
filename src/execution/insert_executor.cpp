@@ -21,28 +21,30 @@ namespace bustub {
 
 InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+    : AbstractExecutor(exec_ctx),
+      plan_(plan),
+      child_executor_(std::move(child_executor)),
+      executor_result_(&GetOutputSchema()) {
   LOG_DEBUG("Initialize insert executor.\n%s", plan_->ToString().c_str());
 }
 
-void InsertExecutor::Init() { child_executor_->Init(); }
+void InsertExecutor::Init() {
+  child_executor_->Init();
 
-auto InsertExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
-  LOG_TRACE("Insert executor Next");
-
-  if (is_insertion_finish_) {
-    return false;
+  if (executor_result_.IsNotEmpty()) {
+    executor_result_.SetOrResetBegin();
+    return;
   }
 
   const auto table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
   const auto indexes_info = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
-  int32_t inserted_rows_count = 0;
-  Tuple child_tuple;
+  const auto *transaction = exec_ctx_->GetTransaction();
 
-  while (child_executor_->Next(&child_tuple, rid)) {
-    TupleMeta inserted_tuple_meta;
-    inserted_tuple_meta.is_deleted_ = false;
-    inserted_tuple_meta.ts_ = 0;
+  int32_t inserted_rows_count = 0;
+  RID rid;
+  Tuple child_tuple;
+  while (child_executor_->Next(&child_tuple, &rid)) {
+    TupleMeta inserted_tuple_meta{transaction->GetTransactionTempTs(), false};
 
     // Insert tuple.
     if (const auto inserted_rid = table_info->table_->InsertTuple(inserted_tuple_meta, child_tuple); inserted_rid) {
@@ -61,9 +63,17 @@ auto InsertExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
     }
   }
 
-  is_insertion_finish_ = true;  // Generate inserted rows count.
-  *tuple = Tuple({Value{INTEGER, inserted_rows_count}}, &GetOutputSchema());
-  return true;
+  executor_result_.EmplaceBack(Tuple({Value{INTEGER, inserted_rows_count}}, &GetOutputSchema()));
+  executor_result_.SetOrResetBegin();
+}
+
+auto InsertExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
+  LOG_TRACE("Insert executor Next");
+  while (executor_result_.IsNotEnd()) {
+    *tuple = executor_result_.Next();
+    return true;
+  }
+  return false;
 }
 
 }  // namespace bustub

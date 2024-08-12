@@ -14,6 +14,7 @@
 
 #include <memory>
 
+#include "executor_result.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/insert_plan.h"
 #include "storage/table/tuple.h"
@@ -58,7 +59,7 @@ class InsertExecutor final : public AbstractExecutor {
 
   std::unique_ptr<AbstractExecutor> child_executor_;
 
-  bool is_insertion_finish_ = false;
+  ExecutorResult executor_result_;
 };
 
 }  // namespace bustub
