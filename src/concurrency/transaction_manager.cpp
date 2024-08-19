@@ -65,14 +65,22 @@ auto TransactionManager::Commit(Transaction *txn) -> bool {
     }
   }
 
-  // TODO(fall2023): Implement the commit logic!
+  const timestamp_t commit_ts = ++last_commit_ts_;
 
-  std::unique_lock lck(txn_map_mutex_);
+  // Iterate through all tuples changed by this transaction.
+  // std::unique_lock lck(txn_map_mutex_);
+  for (const auto &[table_oid, write_rids] : txn->GetWriteSets()) {
+    const auto *table_heap = catalog_->GetTable(table_oid)->table_.get();
+    for (const auto &rid : write_rids) {
+      // Set the timestamp of the base tuples to the commit timestamp.
+      auto meta = table_heap->GetTupleMeta(rid);
+      meta.ts_ = commit_ts;
+      table_heap->UpdateTupleMeta(meta, rid);
+    }
+  }
 
-  // TODO(fall2023): set commit timestamp + update last committed timestamp here.
-  // TODO(fall2023): acquire commit ts!
-  txn->commit_ts_ = ++last_commit_ts_;
-
+  // Update transaction.
+  txn->commit_ts_ = commit_ts;
   txn->state_ = TransactionState::COMMITTED;
   running_txns_.UpdateCommitTs(txn->commit_ts_);
   running_txns_.RemoveTxn(txn->read_ts_);
