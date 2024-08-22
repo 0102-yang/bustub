@@ -13,7 +13,6 @@ auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const Tuple
                       const std::vector<UndoLog> &undo_logs) -> std::optional<Tuple> {
   bool is_deleted = base_meta.is_deleted_;
   Tuple reconstructed_tuple(base_tuple);
-
   for (const auto &undo_log : undo_logs) {
     is_deleted = undo_log.is_deleted_;
     if (undo_log.is_deleted_) {
