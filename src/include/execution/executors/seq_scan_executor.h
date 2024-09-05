@@ -56,7 +56,7 @@ class SeqScanExecutor final : public AbstractExecutor {
     return table_info->table_->MakeIterator();
   }
 
-  [[nodiscard]] auto ReconstructTupleFromPreviousVersion(const Tuple &next_base_tuple, const TupleMeta &next_base_meta, const RID &next_rid, const Schema& schema) const
+  [[nodiscard]] auto ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta, const RID &rid, const Schema& schema) const
     -> std::optional<Tuple>;
 };
 }  // namespace bustub

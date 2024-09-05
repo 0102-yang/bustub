@@ -41,11 +41,11 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
 
   while (!table_iterator_.IsEnd()) {
     // Get next tuple.
-    const auto [next_base_meta, next_base_tuple] = table_iterator_.GetTuple();
-    const auto next_rid = table_iterator_.GetRID();
+    const auto [base_meta, base_tuple] = table_iterator_.GetTuple();
+    *rid = table_iterator_.GetRID();
     ++table_iterator_;
 
-    if (predicate && !predicate->Evaluate(&next_base_tuple, output_schema).GetAs<bool>()) {
+    if (predicate && !predicate->Evaluate(&base_tuple, output_schema).GetAs<bool>()) {
       LOG_TRACE("Failed to get tuple %s due to dissatisfy conditions",
                 next_base_tuple.ToString(&output_schema).c_str());
       continue;
@@ -53,13 +53,12 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
 
     // Get reconstructed tuple.
     const auto reconstructed_tuple =
-        ReconstructTupleFromPreviousVersion(next_base_tuple, next_base_meta, next_rid, output_schema);
+        ReconstructTupleFromTableHeapAndUndoLogs(base_tuple, base_meta, *rid, output_schema);
     if (!reconstructed_tuple.has_value()) {
       continue;
     }
 
     *tuple = *reconstructed_tuple;
-    *rid = next_rid;
     LOG_TRACE("Succeed in getting tuple %s, RID %s in sequential scan.", tuple->ToString(&output_schema).c_str(),
               rid->ToString().c_str());
     return true;
@@ -68,36 +67,36 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   return false;
 }
 
-auto SeqScanExecutor::ReconstructTupleFromPreviousVersion(const Tuple &next_base_tuple, const TupleMeta &next_base_meta,
-                                                   const RID &next_rid, const Schema &schema) const
+auto SeqScanExecutor::ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta,
+                                                               const RID &rid, const Schema &schema) const
     -> std::optional<Tuple> {
   auto *transaction_manager = exec_ctx_->GetTransactionManager();
   const auto *transaction = exec_ctx_->GetTransaction();
 
-  if (transaction->GetReadTs() >= next_base_meta.ts_ || transaction->GetTransactionTempTs() == next_base_meta.ts_) {
-    return next_base_tuple;
+  // If the tuple is visible to the transaction, return the tuple.
+  if (transaction->GetReadTs() >= base_meta.ts_ || transaction->GetTransactionTempTs() == base_meta.ts_) {
+    return base_meta.is_deleted_ ? std::nullopt : std::make_optional(base_tuple);
   }
 
-  // Retrieve undo logs.
-  // Todo: Can be replaced by UndoLog iterator.
-  const auto optional_link = transaction_manager->GetUndoLink(next_rid);
+  // The tuple in heap is invisible to the transaction, need retrieve undo logs.
+  const auto optional_link = transaction_manager->GetUndoLink(rid);
   std::vector<UndoLog> undo_logs;
   if (optional_link.has_value()) {
     UndoLink link = *optional_link;
     while (link.IsValid()) {
-      const auto log = transaction_manager->GetUndoLog(link);
-      if (log.ts_ <= transaction->GetReadTs()) {
-        undo_logs.push_back(log);
-      }
+      auto log = transaction_manager->GetUndoLog(link);
       link = log.prev_version_;
+      if (log.ts_ <= transaction->GetReadTs()) {
+        undo_logs.push_back(std::move(log));
+      }
     }
   }
 
-  // If transaction is not committed and has no undo logs, just return null.
+  // If there are no undo logs, return null.
   if (undo_logs.empty()) {
     return std::nullopt;
   }
-  return ReconstructTuple(&schema, next_base_tuple, next_base_meta, undo_logs);
+  return ReconstructTuple(&schema, base_tuple, base_meta, undo_logs);
 }
 
 }  // namespace bustub
