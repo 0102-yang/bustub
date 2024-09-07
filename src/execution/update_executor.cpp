@@ -19,9 +19,12 @@ namespace bustub {
 
 UpdateExecutor::UpdateExecutor(ExecutorContext *exec_ctx, const UpdatePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
+    : AbstractExecutor(exec_ctx),
+      plan_(plan),
+      child_executor_(std::move(child_executor)),
+      executor_result_(&GetOutputSchema()) {
   // As of Fall 2022, you DON'T need to implement update executor to have perfect score in project 3 / project 4.
-  LOG_DEBUG("Initialize update executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize update executor.\n%s", plan_->ToString().c_str());
 }
 
 void UpdateExecutor::Init() { child_executor_->Init(); }

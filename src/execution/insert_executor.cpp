@@ -26,7 +26,7 @@ InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *
       plan_(plan),
       child_executor_(std::move(child_executor)),
       executor_result_(&GetOutputSchema()) {
-  LOG_DEBUG("Initialize insert executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize insert executor.\n%s", plan_->ToString().c_str());
 }
 
 void InsertExecutor::Init() {
@@ -40,7 +40,6 @@ void InsertExecutor::Init() {
   const auto table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
   const auto indexes_info = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
   auto *transaction = exec_ctx_->GetTransaction();
-  auto *transaction_manager = exec_ctx_->GetTransactionManager();
 
   int32_t inserted_rows_count = 0;
   RID child_rid;
@@ -55,8 +54,6 @@ void InsertExecutor::Init() {
 
       // Insert to write set and version chain of transaction.
       transaction->AppendWriteSet(plan_->table_oid_, *inserted_rid);
-      const auto &prev_link = transaction_manager->GetUndoLink(*inserted_rid);
-      transaction_manager->UpdateUndoLink(*inserted_rid, prev_link);
 
       // Insert indexes.
       for (const auto index_info : indexes_info) {

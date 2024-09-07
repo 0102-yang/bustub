@@ -9,7 +9,7 @@ TopNExecutor::TopNExecutor(ExecutorContext *exec_ctx, const TopNPlanNode *plan,
       plan_(plan),
       child_executor_(std::move(child_executor)),
       executor_result_(&plan_->OutputSchema()) {
-  LOG_DEBUG("Initialize top-n executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize top-n executor.\n%s", plan_->ToString().c_str());
 }
 
 void TopNExecutor::Init() {

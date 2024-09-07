@@ -30,7 +30,7 @@ namespace bustub {
 
 SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan), table_iterator_(MakeIterator()) {
-  LOG_DEBUG("Initialize sequential scan executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize sequential scan executor.\n%s", plan_->ToString().c_str());
 }
 
 void SeqScanExecutor::Init() { table_iterator_ = MakeIterator(); }
