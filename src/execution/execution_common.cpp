@@ -62,10 +62,10 @@ void TxnMgrDbg(const std::string &info, TransactionManager *txn_mgr, const Table
     ++itr;
 
     if (meta.is_deleted_) {
-      debug_output << fmt::format("RID={}/{} ts={} tuple={}\n", rid.GetPageId(), rid.GetSlotNum(),
+      debug_output << fmt::format("RID={}/{} ts={} <del> tuple={}\n", rid.GetPageId(), rid.GetSlotNum(),
                                   format_timestamp(meta.ts_), tuple.ToString(&schema));
     } else {
-      debug_output << fmt::format("RID={}/{} ts={} <del> tuple={}\n", rid.GetPageId(), rid.GetSlotNum(),
+      debug_output << fmt::format("RID={}/{} ts={} tuple={}\n", rid.GetPageId(), rid.GetSlotNum(),
                                   format_timestamp(meta.ts_), tuple.ToString(&schema));
     }
 
