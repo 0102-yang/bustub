@@ -15,7 +15,7 @@ WindowFunctionExecutor::WindowFunctionExecutor(ExecutorContext *exec_ctx, const 
       plan_(plan),
       child_executor_(std::move(child_executor)),
       executor_result_(&plan_->OutputSchema()) {
-  LOG_DEBUG("Initialize window function executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize window function executor.\n%s", plan_->ToString().c_str());
 }
 
 void WindowFunctionExecutor::Init() {

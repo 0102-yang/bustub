@@ -14,40 +14,72 @@
 #include <memory>
 
 #include "common/logger.h"
+#include "concurrency/transaction_manager.h"
+#include "execution/execution_common.h"
 
 namespace bustub {
 
 DeleteExecutor::DeleteExecutor(ExecutorContext *exec_ctx, const DeletePlanNode *plan,
                                std::unique_ptr<AbstractExecutor> &&child_executor)
-    : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {
-  LOG_DEBUG("Initialize delete executor.\n%s", plan_->ToString().c_str());
+    : AbstractExecutor(exec_ctx),
+      plan_(plan),
+      child_executor_(std::move(child_executor)),
+      executor_result_(&GetOutputSchema()) {
+  LOG_TRACE("Initialize delete executor.\n%s", plan_->ToString().c_str());
 }
 
-void DeleteExecutor::Init() { child_executor_->Init(); }
+void DeleteExecutor::Init() {
+  child_executor_->Init();
 
-auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
-  if (is_deletion_finish_) {
-    return false;
+  if (executor_result_.IsNotEmpty()) {
+    executor_result_.SetOrResetBegin();
+    return;
   }
 
-  const auto table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
-  const auto indexes_info = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
-  int32_t deleted_rows_count = 0;
+  // Retrieve tuples in child executor and put them into buffer.
   Tuple child_tuple;
+  RID child_rid;
+  std::vector<Tuple> tuples_buffer;
+  std::vector<RID> rids_buffer;
+  while (child_executor_->Next(&child_tuple, &child_rid)) {
+    tuples_buffer.emplace_back(std::move(child_tuple));
+    rids_buffer.emplace_back(child_rid);
+  }
 
-  while (child_executor_->Next(&child_tuple, rid)) {
-    TupleMeta new_deleted_tuple_meta;
-    new_deleted_tuple_meta.is_deleted_ = true;
+  auto *txn_manager = exec_ctx_->GetTransactionManager();
+  auto *txn = exec_ctx_->GetTransaction();
+  const auto table_oid = plan_->GetTableOid();
+  const auto table_info = exec_ctx_->GetCatalog()->GetTable(table_oid);
+  const auto *table_heap = table_info->table_.get();
+  const auto indexes_info = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
 
-    table_info->table_->UpdateTupleMeta(new_deleted_tuple_meta, *rid);
-    LOG_TRACE("Delete tuple %s, RID %s", child_tuple.ToString(&child_executor_->GetOutputSchema()).c_str(),
-              rid->ToString().c_str());
+  // Check write-write conflict.
+  CheckWriteWriteConflict(txn, table_heap, rids_buffer);
+
+  int32_t deleted_rows_count = 0;
+  const auto &tuple_schema = child_executor_->GetOutputSchema();
+  // Delete tuples.
+  for (size_t i = 0; i < tuples_buffer.size(); i++) {
+    const auto &tuple = tuples_buffer[i];
+    const auto &rid = rids_buffer[i];
+
+    // Generate undo log.
+    if (const auto [ts_, is_deleted_] = table_heap->GetTupleMeta(rid); ts_ < txn->GetTransactionId()) {
+      // This tuple is firstly modified by this transaction.
+      const std::vector modified_fields(tuple_schema.GetColumnCount(), true);
+      AppendAndLinkUndoLog(txn_manager, txn, table_oid, rid, {false, modified_fields, tuple, ts_, {}});
+    }
+
+    // Delete tuple and its indexes.
+    // Delete tuple.
+    table_heap->UpdateTupleMeta({txn->GetTransactionTempTs(), true}, rid);
+    LOG_TRACE("Delete tuple %s, RID %s", tuple.ToString(tuple_schema).c_str(), rid->ToString().c_str());
 
     // Delete indexes.
     for (const auto index_info : indexes_info) {
-      const auto key_tuple = child_tuple.KeyFromTuple(child_executor_->GetOutputSchema(), index_info->key_schema_,
-                                                      index_info->index_->GetKeyAttrs());
-      index_info->index_->DeleteEntry(key_tuple, *rid, nullptr);
+      const auto key_tuple =
+          tuple.KeyFromTuple(tuple_schema, index_info->key_schema_, index_info->index_->GetKeyAttrs());
+      index_info->index_->DeleteEntry(key_tuple, rid, nullptr);
       LOG_TRACE("Delete index of RID %s from index %s", rid->ToString().c_str(),
                 index_info->index_->ToString().c_str());
     }
@@ -55,9 +87,18 @@ auto DeleteExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
     deleted_rows_count++;
   }
 
-  is_deletion_finish_ = true;
-  *tuple = Tuple({Value{INTEGER, deleted_rows_count}}, &GetOutputSchema());
-  return true;
+  Tuple deleted_result_tuple({Value{INTEGER, deleted_rows_count}}, &GetOutputSchema());
+  executor_result_.EmplaceBack(std::move(deleted_result_tuple));
+  executor_result_.SetOrResetBegin();
+}
+
+auto DeleteExecutor::Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool {
+  LOG_TRACE("Update executor Next");
+  while (executor_result_.IsNotEnd()) {
+    *tuple = executor_result_.Next();
+    return true;
+  }
+  return false;
 }
 
 }  // namespace bustub

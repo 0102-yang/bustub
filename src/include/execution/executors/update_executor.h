@@ -13,8 +13,8 @@
 #pragma once
 
 #include <memory>
-#include <utility>
 
+#include "executor_result.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/update_plan.h"
 #include "storage/table/tuple.h"
@@ -61,6 +61,6 @@ class UpdateExecutor final : public AbstractExecutor {
   /** The child executor to obtain value from */
   std::unique_ptr<AbstractExecutor> child_executor_;
 
-  bool is_update_finish_ = false;
+  ExecutorResult executor_result_;
 };
 }  // namespace bustub

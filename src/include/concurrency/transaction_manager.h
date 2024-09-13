@@ -58,6 +58,8 @@ class TransactionManager {
   TransactionManager() = default;
   ~TransactionManager() = default;
 
+  DISALLOW_COPY_AND_MOVE(TransactionManager)
+
   /**
    * Begins a new transaction.
    * @param isolation_level an optional isolation level of the transaction.
@@ -148,8 +150,10 @@ class TransactionManager {
   std::atomic<txn_id_t> next_txn_id_{TXN_START_ID};
 
  private:
-  /** @brief Verify if a txn satisfies serializability. We will not test this function and you can change / remove it as
-   * you want. */
+  /**
+   * @brief Checks if a transaction satisfies serializability. This function is not tested, and you may modify or remove
+   * it as needed.
+   */
   auto VerifyTxn(Transaction *txn) -> bool;
 };
 

@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "common/logger.h"
+#include "concurrency/transaction_manager.h"
 
 namespace bustub {
 
@@ -25,7 +26,7 @@ InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *
       plan_(plan),
       child_executor_(std::move(child_executor)),
       executor_result_(&GetOutputSchema()) {
-  LOG_DEBUG("Initialize insert executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize insert executor.\n%s", plan_->ToString().c_str());
 }
 
 void InsertExecutor::Init() {
@@ -38,18 +39,21 @@ void InsertExecutor::Init() {
 
   const auto table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
   const auto indexes_info = exec_ctx_->GetCatalog()->GetTableIndexes(table_info->name_);
-  const auto *transaction = exec_ctx_->GetTransaction();
+  auto *transaction = exec_ctx_->GetTransaction();
 
   int32_t inserted_rows_count = 0;
-  RID rid;
+  RID child_rid;
   Tuple child_tuple;
-  while (child_executor_->Next(&child_tuple, &rid)) {
+  while (child_executor_->Next(&child_tuple, &child_rid)) {
     TupleMeta inserted_tuple_meta{transaction->GetTransactionTempTs(), false};
 
     // Insert tuple.
     if (const auto inserted_rid = table_info->table_->InsertTuple(inserted_tuple_meta, child_tuple); inserted_rid) {
       LOG_TRACE("Insert new entry: RID %s, tuple %s", inserted_rid->ToString().c_str(),
                 child_tuple.ToString(&child_executor_->GetOutputSchema()).c_str());
+
+      // Insert to write set and version chain of transaction.
+      transaction->AppendWriteSet(plan_->table_oid_, *inserted_rid);
 
       // Insert indexes.
       for (const auto index_info : indexes_info) {

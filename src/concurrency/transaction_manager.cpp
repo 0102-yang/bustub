@@ -20,29 +20,23 @@
 #include <unordered_set>
 
 #include "catalog/catalog.h"
-#include "catalog/column.h"
-#include "catalog/schema.h"
 #include "common/config.h"
 #include "common/exception.h"
 #include "common/macros.h"
 #include "concurrency/transaction.h"
-#include "execution/execution_common.h"
 #include "storage/table/table_heap.h"
 #include "storage/table/tuple.h"
-#include "type/type_id.h"
-#include "type/value.h"
 #include "type/value_factory.h"
 
 namespace bustub {
 
 auto TransactionManager::Begin(IsolationLevel isolation_level) -> Transaction * {
-  std::unique_lock l(txn_map_mutex_);
+  std::lock_guard l(txn_map_mutex_);
   auto txn_id = next_txn_id_++;
   auto txn = std::make_unique<Transaction>(txn_id, isolation_level);
   auto *txn_ref = txn.get();
-  txn_map_.insert(std::make_pair(txn_id, std::move(txn)));
 
-  // TODO(fall2023): set the timestamps here. Watermark updated below.
+  txn_map_.emplace(txn_id, std::move(txn));
   txn_ref->read_ts_ = running_txns_.GetLatestCommitTimestamp();
   running_txns_.AddTxn(txn_ref->read_ts_);
   return txn_ref;
@@ -65,14 +59,22 @@ auto TransactionManager::Commit(Transaction *txn) -> bool {
     }
   }
 
-  // TODO(fall2023): Implement the commit logic!
+  const timestamp_t commit_ts = ++last_commit_ts_;
 
-  std::unique_lock lck(txn_map_mutex_);
+  // Iterate through all tuples changed by this transaction and update their commit timestamp
+  // to the commit timestamp of this transaction.
+  for (const auto &[table_oid, write_rids] : txn->GetWriteSets()) {
+    const auto *table_heap = catalog_->GetTable(table_oid)->table_.get();
+    for (const auto &rid : write_rids) {
+      // Set the timestamp of the base tuples to the commit timestamp.
+      auto meta = table_heap->GetTupleMeta(rid);
+      meta.ts_ = commit_ts;
+      table_heap->UpdateTupleMeta(meta, rid);
+    }
+  }
 
-  // TODO(fall2023): set commit timestamp + update last committed timestamp here.
-  // TODO(fall2023): acquire commit ts!
-  txn->commit_ts_ = ++last_commit_ts_;
-
+  // Update transaction.
+  txn->commit_ts_ = commit_ts;
   txn->state_ = TransactionState::COMMITTED;
   running_txns_.UpdateCommitTs(txn->commit_ts_);
   running_txns_.RemoveTxn(txn->read_ts_);

@@ -9,7 +9,7 @@ SortExecutor::SortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
       plan_(plan),
       child_executor_(std::move(child_executor)),
       executor_result_(&plan_->OutputSchema()) {
-  LOG_DEBUG("Initialize sort executor.\n%s", plan_->ToString().c_str());
+  LOG_TRACE("Initialize sort executor.\n%s", plan_->ToString().c_str());
 }
 
 void SortExecutor::Init() {
