@@ -13,16 +13,16 @@
 #pragma once
 
 #include <memory>
-#include <utility>
 
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/delete_plan.h"
+#include "executor_result.h"
 #include "storage/table/tuple.h"
 
 namespace bustub {
 
 /**
- * DeletedExecutor executes a delete on a table.
+ * DeletedExecutor executes a deletion on a table.
  * Deleted values are always pulled from a child.
  */
 class DeleteExecutor final : public AbstractExecutor {
@@ -42,13 +42,13 @@ class DeleteExecutor final : public AbstractExecutor {
   /**
    * Yield the number of rows deleted from the table.
    * @param[out] tuple The integer tuple indicating the number of rows deleted from the table
-   * @param[out] rid The next tuple RID produced by the delete (ignore, not used)
+   * @param[out] rid The next tuple RID produced by the deletion (ignore, not used)
    * @return `true` if a tuple was produced, `false` if there are no more tuples
    *
    * NOTE: DeleteExecutor::Next() does not use the `rid` out-parameter.
    * NOTE: DeleteExecutor::Next() returns true with the number of deleted rows produced only once.
    */
-  auto Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, [[maybe_unused]] RID *rid) -> bool override;
 
   /** @return The output schema for the delete */
   [[nodiscard]] auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
@@ -60,6 +60,6 @@ class DeleteExecutor final : public AbstractExecutor {
   /** The child executor from which RIDs for deleted tuples are pulled */
   std::unique_ptr<AbstractExecutor> child_executor_;
 
-  bool is_deletion_finish_ = false;
+  ExecutorResult executor_result_;
 };
 }  // namespace bustub

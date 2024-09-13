@@ -51,12 +51,18 @@ class SeqScanExecutor final : public AbstractExecutor {
   /** The table iterator. */
   TableIterator table_iterator_;
 
-  [[nodiscard]] TableIterator MakeIterator() const {
+  [[nodiscard]] auto MakeIterator() const -> TableIterator {
     const auto *table_info = exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_);
     return table_info->table_->MakeIterator();
   }
 
-  [[nodiscard]] auto ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta, const RID &rid, const Schema& schema) const
-    -> std::optional<Tuple>;
+  [[nodiscard]] auto ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta,
+                                                              const RID &rid, const Schema &schema) const
+      -> std::optional<Tuple>;
+
+  [[nodiscard]] static auto IsTupleVisibleToTransaction(const TupleMeta &base_meta, const Transaction *txn) -> bool;
+
+  [[nodiscard]] static auto RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid, timestamp_t read_ts)
+      -> std::optional<std::vector<UndoLog>>;
 };
 }  // namespace bustub

@@ -70,33 +70,46 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
 auto SeqScanExecutor::ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta,
                                                                const RID &rid, const Schema &schema) const
     -> std::optional<Tuple> {
-  auto *transaction_manager = exec_ctx_->GetTransactionManager();
-  const auto *transaction = exec_ctx_->GetTransaction();
+  auto *txn_manager = exec_ctx_->GetTransactionManager();
+  const auto *txn = exec_ctx_->GetTransaction();
 
   // If the tuple is visible to the transaction, return the tuple.
-  if (transaction->GetReadTs() >= base_meta.ts_ || transaction->GetTransactionTempTs() == base_meta.ts_) {
+  if (IsTupleVisibleToTransaction(base_meta, txn)) {
     return base_meta.is_deleted_ ? std::nullopt : std::make_optional(base_tuple);
   }
 
   // The tuple in heap is invisible to the transaction, need retrieve undo logs.
-  const auto optional_link = transaction_manager->GetUndoLink(rid);
-  std::vector<UndoLog> undo_logs;
-  if (optional_link.has_value()) {
-    UndoLink link = *optional_link;
-    while (link.IsValid()) {
-      auto log = transaction_manager->GetUndoLog(link);
-      link = log.prev_version_;
-      if (log.ts_ <= transaction->GetReadTs()) {
-        undo_logs.push_back(std::move(log));
-      }
+  const auto logs = RetrieveUndoLogs(txn_manager, rid, txn->GetReadTs());
+
+  if (!logs || logs->empty()) {
+    if (base_meta.is_deleted_ || base_meta.ts_ > txn->GetReadTs()) {
+      return std::nullopt;
     }
   }
 
-  // If there are no undo logs, return null.
-  if (undo_logs.empty()) {
-    return std::nullopt;
+  // Reconstruct previous tuple version.
+  return ReconstructTuple(&schema, base_tuple, base_meta, logs.value());
+}
+
+auto SeqScanExecutor::IsTupleVisibleToTransaction(const TupleMeta &base_meta, const Transaction *txn) -> bool {
+  return txn->GetReadTs() >= base_meta.ts_ || txn->GetTransactionTempTs() == base_meta.ts_;
+}
+
+auto SeqScanExecutor::RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid, const timestamp_t read_ts)
+    -> std::optional<std::vector<UndoLog>> {
+  if (const auto optional_link = txn_manager->GetUndoLink(rid); optional_link.has_value()) {
+    std::vector<UndoLog> logs;
+    UndoLink link = *optional_link;
+    while (link.IsValid()) {
+      auto log = txn_manager->GetUndoLog(link);
+      link = log.prev_version_;
+      logs.push_back(log);
+      if (log.ts_ <= read_ts) {
+        return logs;
+      }
+    }
   }
-  return ReconstructTuple(&schema, base_tuple, base_meta, undo_logs);
+  return std::nullopt;
 }
 
 }  // namespace bustub

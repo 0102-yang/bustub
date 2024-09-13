@@ -36,15 +36,15 @@ class TableIterator {
 
   TableIterator(TableHeap *table_heap, RID rid, RID stop_at_rid);
   TableIterator(TableIterator &&) = default;
-  TableIterator &operator=(TableIterator &&) = default;
+  auto operator=(TableIterator &&) -> TableIterator & = default;
 
   ~TableIterator() = default;
 
-  auto GetTuple() const -> std::pair<TupleMeta, Tuple>;
+  [[nodiscard]] auto GetTuple() const -> std::pair<TupleMeta, Tuple>;
 
-  auto GetRID() const -> RID;
+  [[nodiscard]] auto GetRID() const -> RID;
 
-  auto IsEnd() const -> bool;
+  [[nodiscard]] auto IsEnd() const -> bool;
 
   auto operator++() -> TableIterator &;
 
