@@ -33,6 +33,11 @@ auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const Tuple
   return is_deleted ? std::nullopt : std::make_optional(reconstructed_tuple);
 }
 
+auto IsDanglingUndoLink(const UndoLink &link, TransactionManager *txn_manager) -> bool {
+  std::shared_lock lock(txn_manager->txn_map_mutex_);
+  return txn_manager->txn_map_.find(link.prev_txn_) == txn_manager->txn_map_.end();
+}
+
 void TxnMgrDbg(const std::string &info, TransactionManager *txn_manager, const TableInfo *table_info,
                TableHeap *table_heap) {
   // always use stderr for printing logs...
@@ -44,6 +49,7 @@ void TxnMgrDbg(const std::string &info, TransactionManager *txn_manager, const T
 
   auto itr = table_heap->MakeIterator();
   const auto &schema = table_info->schema_;
+  const auto watermark = txn_manager->GetWatermark();
   std::ostringstream debug_output;
   while (!itr.IsEnd()) {
     // Get tuple.
@@ -69,13 +75,22 @@ void TxnMgrDbg(const std::string &info, TransactionManager *txn_manager, const T
     uint count = 0;
     std::vector<UndoLog> undo_logs;
     while (undo_link.IsValid()) {
+      if (IsDanglingUndoLink(undo_link, txn_manager)) {
+        break;
+      }
+
       const auto undo_log = txn_manager->GetUndoLog(undo_link);
       undo_logs.push_back(undo_log);
 
       // Get versioned tuple from undo logs.
       if (const auto versioned_tuple = ReconstructTuple(&schema, tuple, meta, undo_logs); versioned_tuple.has_value()) {
-        debug_output << fmt::format("  {}: tuple={} ts={}\n", count, versioned_tuple->ToString(&schema),
-                                    format_timestamp(undo_log.ts_));
+        if (undo_log.ts_ < watermark) {
+          debug_output << fmt::format("  {}: tuple={} ts={} <GCed>\n", count, versioned_tuple->ToString(&schema),
+                                      format_timestamp(undo_log.ts_));
+        } else {
+          debug_output << fmt::format("  {}: tuple={} ts={}\n", count, versioned_tuple->ToString(&schema),
+                                      format_timestamp(undo_log.ts_));
+        }
       } else {
         debug_output << fmt::format("  {}: <del> ts={}\n", count, undo_log.ts_);
       }
