@@ -39,19 +39,19 @@ endif()
 
 # Expected directory structure.
 set(BUSTUB_BUILD_SUPPORT_DIR "${CMAKE_SOURCE_DIR}/build_support")
-set(BUSTUB_CLANG_SEARCH_PATH "/usr/local/bin" "/usr/bin" "/usr/local/opt/llvm/bin" "/usr/local/opt/llvm@14/bin"
-        "/opt/homebrew/opt/llvm@14/bin/")
+set(BUSTUB_CLANG_SEARCH_PATH "/usr/local/bin" "/usr/bin" "/usr/local/opt/llvm/bin" "/usr/local/opt/llvm@18/bin"
+        "/opt/homebrew/opt/llvm@18/bin/")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        if(CMAKE_CXX_COMPILER_VERSION MATCHES "^14.")
+        if(CMAKE_CXX_COMPILER_VERSION MATCHES "^18.")
                 message(STATUS "You're using ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
         else()
-                message(WARNING "!! We recommend that you use clang-14 for developing BusTub. You're using ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}, a different version.")
+                message(WARNING "!! We recommend that you use clang-18 for developing BusTub. You're using ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}, a different version.")
         endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         message(STATUS "You're using ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 else()
-        message(WARNING "!! We recommend that you use clang-14 for developing BusTub. You're using ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}, which is not clang.")
+        message(WARNING "!! We recommend that you use clang-18 for developing BusTub. You're using ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}, which is not clang.")
 endif()
 
 # #####################################################################################################################
@@ -65,7 +65,7 @@ enable_testing()
 
 # attempt to find the binary if user did not specify
 find_program(CLANG_FORMAT_BIN
-        NAMES clang-format clang-format-14
+        NAMES clang-format clang-format-18
         HINTS ${BUSTUB_CLANG_SEARCH_PATH})
 
 if("${CLANG_FORMAT_BIN}" STREQUAL "CLANG_FORMAT_BIN-NOTFOUND")
@@ -76,7 +76,7 @@ endif()
 
 # attempt to find the binary if user did not specify
 find_program(CLANG_TIDY_BIN
-        NAMES clang-tidy clang-tidy-14
+        NAMES clang-tidy clang-tidy-18
         HINTS ${BUSTUB_CLANG_SEARCH_PATH})
 
 if("${CLANG_TIDY_BIN}" STREQUAL "CLANG_TIDY_BIN-NOTFOUND")
@@ -88,7 +88,7 @@ else()
 endif()
 
 find_program(CLANG_APPLY_REPLACEMENTS_BIN
-        NAMES clang-apply-replacements clang-apply-replacements-14
+        NAMES clang-apply-replacements clang-apply-replacements-18
         HINTS ${BUSTUB_CLANG_SEARCH_PATH})
 
 if("${CLANG_APPLY_REPLACEMENTS_BIN}" STREQUAL "CLANG_APPLY_REPLACEMENTS_BIN-NOTFOUND")
@@ -135,6 +135,7 @@ message(STATUS "CMAKE_SHARED_LINKER_FLAGS: ${CMAKE_SHARED_LINKER_FLAGS}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Includes.
 set(BUSTUB_SRC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/include)

@@ -8,11 +8,11 @@
       "name": "linux-clang-debug",
       "displayName": "Linux Clang Debug",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "binaryDir": "${sourceDir}/build",
+      "installDir": "${sourceDir}/install",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-14",
-        "CMAKE_CXX_COMPILER": "clang++-14",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_BUILD_TYPE": "Debug"
       },
       "condition": {
@@ -25,7 +25,9 @@
       "name": "linux-clang-relwithdebinfo",
       "displayName": "Linux Clang RelWithDebInfo",
       "inherits": "linux-clang-debug",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
     },
     {
       "name": "linux-clang-trace-debug",
