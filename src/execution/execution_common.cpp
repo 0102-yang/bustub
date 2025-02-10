@@ -2,10 +2,10 @@
 #include <sstream>
 
 #include "catalog/catalog.h"
+#include "common/exception.h"
 #include "concurrency/transaction_manager.h"
 #include "execution/execution_common.h"
 
-#include "common/logger.h"
 #include "fmt/core.h"
 #include "storage/table/table_heap.h"
 

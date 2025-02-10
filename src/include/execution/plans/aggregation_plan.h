@@ -26,7 +26,7 @@
 namespace bustub {
 
 /** AggregationType enumerates all the possible aggregation functions in our system */
-enum class AggregationType { CountStarAggregate, CountAggregate, SumAggregate, MinAggregate, MaxAggregate };
+enum class AggregationType : uint8_t { CountStarAggregate, CountAggregate, SumAggregate, MinAggregate, MaxAggregate };
 
 /**
  * AggregationPlanNode represents the various SQL aggregation functions.

@@ -92,7 +92,10 @@ class AbstractExpression {
 }  // namespace bustub
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::AbstractExpression, T>::value, char>>
+constexpr bool IS_ABSTRACT_EXPRESSION_V = std::is_base_of_v<bustub::AbstractExpression, T>;
+
+template <typename T>
+struct fmt::formatter<T, std::enable_if_t<IS_ABSTRACT_EXPRESSION_V<T>, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const T &x, FormatCtx &ctx) const {
@@ -101,7 +104,7 @@ struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::AbstractExpres
 };
 
 template <typename T>
-struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<bustub::AbstractExpression, T>::value, char>>
+struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<IS_ABSTRACT_EXPRESSION_V<T>, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::unique_ptr<T> &x, FormatCtx &ctx) const {
@@ -113,7 +116,7 @@ struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<bustu
 };
 
 template <typename T>
-struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<std::is_base_of<bustub::AbstractExpression, T>::value, char>>
+struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<IS_ABSTRACT_EXPRESSION_V<T>, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::shared_ptr<T> &x, FormatCtx &ctx) const {

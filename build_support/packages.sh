@@ -93,9 +93,7 @@ install_linux() {
   sudo apt-get -y update
   # Install packages.
   sudo apt-get -y install --no-install-recommends \
-      clangd \
-      clang-format \
-      clang-tidy \
+      clang-tools \
       doxygen \
       zlib1g-dev \
       libelf-dev \

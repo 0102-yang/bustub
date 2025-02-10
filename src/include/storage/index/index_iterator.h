@@ -13,6 +13,7 @@
  * For range scan of b+ tree
  */
 #pragma once
+#include <stdexcept>
 #include "storage/page/b_plus_tree_leaf_page.h"
 
 namespace bustub {
@@ -24,7 +25,7 @@ class IndexIterator {
  public:
   // you may define your own constructor based on your member variables
   IndexIterator();
-  ~IndexIterator();  // NOLINT
+  ~IndexIterator() = default;  // NOLINT
 
   auto IsEnd() -> bool;
 

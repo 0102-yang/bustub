@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "execution/executors/hash_join_executor.h"
+#include "common/exception.h"
 #include "common/logger.h"
 #include "common/util/hash_util.h"
 
@@ -24,7 +25,7 @@ HashJoinExecutor::HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlan
       left_child_(std::move(left_child)),
       right_child_(std::move(right_child)),
       executor_result_(&GetOutputSchema()) {
-  if (!(plan->GetJoinType() == JoinType::LEFT || plan->GetJoinType() == JoinType::INNER)) {
+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
     // Note for 2023 Fall: You ONLY need to implement left join and inner join.
     throw NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
   }

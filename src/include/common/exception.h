@@ -27,7 +27,7 @@ namespace bustub {
 // TODO(WAN): the comment I added below is a lie, but you shouldn't need to poke around here. Don't worry about it.
 //  Most of the exception types are type subsystem madness. I think we can get rid of it at some point.
 /** ExceptionType is all the types of exceptions that we expect to throw in our system. */
-enum class ExceptionType {
+enum class ExceptionType : uint8_t {
   /** Invalid exception type.*/
   INVALID = 0,
   /** Value out of range. */
@@ -52,7 +52,7 @@ enum class ExceptionType {
   EXECUTION = 12,
 };
 
-extern std::atomic<bool> global_disable_execution_exception_print;
+extern std::atomic<bool> g_disable_execution_exception_print;
 
 class Exception : public std::runtime_error {
  public:
@@ -78,7 +78,7 @@ class Exception : public std::runtime_error {
   Exception(ExceptionType exception_type, const std::string &message, bool print = true)
       : std::runtime_error(message), type_(exception_type) {
 #ifndef NDEBUG
-    if (print && !global_disable_execution_exception_print.load()) {
+    if (print && !g_disable_execution_exception_print.load()) {
       std::string exception_message =
           "\nException Type :: " + ExceptionTypeToString(type_) + ", Message :: " + message + "\n\n";
       std::cerr << exception_message;

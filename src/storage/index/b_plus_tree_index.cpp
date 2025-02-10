@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "storage/index/b_plus_tree_index.h"
+#include "buffer/buffer_pool_manager.h"
 
 namespace bustub {
 /*
