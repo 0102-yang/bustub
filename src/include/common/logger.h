@@ -42,7 +42,10 @@ namespace bustub {
 using cstr = const char *;
 
 static constexpr auto PastLastSlash(cstr a, cstr b) -> cstr {
-  return *a == '\0' ? b : *a == '/' ? PastLastSlash(a + 1, a + 1) : PastLastSlash(a + 1, b);
+  if (*a == '\0') {
+    return b;
+  }
+  return *a == '/' ? PastLastSlash(a + 1, a + 1) : PastLastSlash(a + 1, b);
 }
 
 static constexpr auto PastLastSlash(cstr a) -> cstr { return PastLastSlash(a, a); }
