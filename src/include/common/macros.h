@@ -13,8 +13,7 @@
 #pragma once
 
 #include <cassert>
-#include <exception>
-#include <stdexcept>
+#include <iostream>  // IWYU pragma: keep for BUSTUB_ENSURE
 
 namespace bustub {
 
@@ -22,10 +21,10 @@ namespace bustub {
 
 #define UNIMPLEMENTED(message) throw std::logic_error(message)
 
-#define BUSTUB_ENSURE(expr, message)                  \
-  if (!(expr)) {                                      \
-    std::cerr << "ERROR: " << (message) << std::endl; \
-    std::terminate();                                 \
+#define BUSTUB_ENSURE(expr, message)             \
+  if (!(expr)) {                                 \
+    std::cerr << "ERROR: " << (message) << '\n'; \
+    std::terminate();                            \
   }
 
 #define UNREACHABLE(message) throw std::logic_error(message)

@@ -98,13 +98,14 @@ auto SeqScanExecutor::IsTupleVisibleToTransaction(const TupleMeta &base_meta, co
 auto SeqScanExecutor::RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid, const timestamp_t read_ts)
     -> std::optional<std::vector<UndoLog>> {
   if (const auto optional_link = txn_manager->GetUndoLink(rid); optional_link.has_value()) {
+    const auto watermark = txn_manager->GetWatermark();
     std::vector<UndoLog> logs;
     UndoLink link = *optional_link;
     while (link.IsValid()) {
       auto log = txn_manager->GetUndoLog(link);
       link = log.prev_version_;
       logs.push_back(log);
-      if (log.ts_ <= read_ts) {
+      if (log.ts_ <= read_ts || log.ts_ < watermark) {
         return logs;
       }
     }

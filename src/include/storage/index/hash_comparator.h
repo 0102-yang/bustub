@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "common/util/hash_util.h"
+
 namespace bustub {
 
 /**
@@ -22,7 +24,12 @@ namespace bustub {
  */
 class HashComparator {
  public:
-  inline auto operator()(const hash_t lhs, const hash_t rhs) -> int { return lhs < rhs ? -1 : (lhs > rhs ? 1 : 0); }
+  auto operator()(const hash_t lhs, const hash_t rhs) -> int {
+    if (lhs < rhs) {
+      return -1;
+    }
+    return lhs > rhs ? 1 : 0;
+  }
 };
 
 }  // namespace bustub

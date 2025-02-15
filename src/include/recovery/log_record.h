@@ -20,7 +20,7 @@
 
 namespace bustub {
 /** The type of the log record. */
-enum class LogRecordType {
+enum class LogRecordType : uint8_t {
   INVALID = 0,
   INSERT,
   MARKDELETE,
@@ -112,34 +112,34 @@ class LogRecord {
 
   ~LogRecord() = default;
 
-  inline auto GetDeleteTuple() -> Tuple & { return delete_tuple_; }
+  auto GetDeleteTuple() -> Tuple & { return delete_tuple_; }
 
-  inline auto GetDeleteRID() -> RID & { return delete_rid_; }
+  auto GetDeleteRID() -> RID & { return delete_rid_; }
 
-  inline auto GetInsertTuple() -> Tuple & { return insert_tuple_; }
+  auto GetInsertTuple() -> Tuple & { return insert_tuple_; }
 
-  inline auto GetInsertRID() -> RID & { return insert_rid_; }
+  auto GetInsertRID() -> RID & { return insert_rid_; }
 
-  inline auto GetOriginalTuple() -> Tuple & { return old_tuple_; }
+  auto GetOriginalTuple() -> Tuple & { return old_tuple_; }
 
-  inline auto GetUpdateTuple() -> Tuple & { return new_tuple_; }
+  auto GetUpdateTuple() -> Tuple & { return new_tuple_; }
 
-  inline auto GetUpdateRID() -> RID & { return update_rid_; }
+  auto GetUpdateRID() -> RID & { return update_rid_; }
 
-  inline auto GetNewPageRecord() -> page_id_t { return prev_page_id_; }
+  auto GetNewPageRecord() -> page_id_t { return prev_page_id_; }
 
-  inline auto GetSize() -> int32_t { return size_; }
+  auto GetSize() -> int32_t { return size_; }
 
-  inline auto GetLSN() -> lsn_t { return lsn_; }
+  auto GetLSN() -> lsn_t { return lsn_; }
 
-  inline auto GetTxnId() -> txn_id_t { return txn_id_; }
+  auto GetTxnId() -> txn_id_t { return txn_id_; }
 
-  inline auto GetPrevLSN() -> lsn_t { return prev_lsn_; }
+  auto GetPrevLSN() -> lsn_t { return prev_lsn_; }
 
-  inline auto GetLogRecordType() -> LogRecordType & { return log_record_type_; }
+  auto GetLogRecordType() -> LogRecordType & { return log_record_type_; }
 
   // For debug purpose
-  inline auto ToString() const -> std::string {
+  auto ToString() const -> std::string {
     std::ostringstream os;
     os << "Log["
        << "size:" << size_ << ", "

@@ -56,13 +56,13 @@ class IndexMetadata {
   ~IndexMetadata() = default;
 
   /** @return The name of the index */
-  inline auto GetName() const -> const std::string & { return name_; }
+  auto GetName() const -> const std::string & { return name_; }
 
   /** @return The name of the table on which the index is created */
-  inline auto GetTableName() -> const std::string & { return table_name_; }
+  auto GetTableName() -> const std::string & { return table_name_; }
 
   /** @return A schema object pointer that represents the indexed key */
-  inline auto GetKeySchema() const -> Schema * { return key_schema_.get(); }
+  auto GetKeySchema() const -> Schema * { return key_schema_.get(); }
 
   /**
    * @return The number of columns inside index key (not in tuple key)
@@ -73,10 +73,10 @@ class IndexMetadata {
   auto GetIndexColumnCount() const -> std::uint32_t { return static_cast<uint32_t>(key_attrs_.size()); }
 
   /** @return The mapping relation between indexed columns and base table columns */
-  inline auto GetKeyAttrs() const -> const std::vector<uint32_t> & { return key_attrs_; }
+  auto GetKeyAttrs() const -> const std::vector<uint32_t> & { return key_attrs_; }
 
   /** @return is primary key */
-  inline auto IsPrimaryKey() const -> bool { return is_primary_key_; }
+  auto IsPrimaryKey() const -> bool { return is_primary_key_; }
 
   /** @return A string representation for debugging */
   auto ToString() const -> std::string {

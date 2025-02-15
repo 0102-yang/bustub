@@ -10,10 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <algorithm>
 #include <optional>
 #include <utility>
 
 #include "common/exception.h"
+#include "storage/index/generic_key.h"
 #include "storage/page/extendible_htable_bucket_page.h"
 
 namespace bustub {

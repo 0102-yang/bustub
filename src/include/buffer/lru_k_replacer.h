@@ -25,7 +25,7 @@
 
 namespace bustub {
 
-enum class AccessType { Unknown = 0, Lookup, Scan, Index };
+enum class AccessType : uint8_t { Unknown = 0, Lookup, Scan, Index };
 
 class LRUKNode {
   /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */

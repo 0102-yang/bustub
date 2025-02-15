@@ -13,6 +13,8 @@ namespace bustub {
 auto ReconstructTuple(const Schema *schema, const Tuple &base_tuple, const TupleMeta &base_meta,
                       const std::vector<UndoLog> &undo_logs) -> std::optional<Tuple>;
 
+auto IsDanglingUndoLink(const UndoLink &link, TransactionManager *txn_manager) -> bool;
+
 void TxnMgrDbg(const std::string &info, TransactionManager *txn_manager, const TableInfo *table_info,
                TableHeap *table_heap);
 

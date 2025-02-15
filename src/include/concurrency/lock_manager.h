@@ -36,7 +36,7 @@ class TransactionManager;
  */
 class LockManager {
  public:
-  enum class LockMode { SHARED, EXCLUSIVE, INTENTION_SHARED, INTENTION_EXCLUSIVE, SHARED_INTENTION_EXCLUSIVE };
+  enum class LockMode : uint8_t { SHARED, EXCLUSIVE, INTENTION_SHARED, INTENTION_EXCLUSIVE, SHARED_INTENTION_EXCLUSIVE };
 
   /**
    * Structure to hold a lock request.

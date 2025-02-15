@@ -19,9 +19,8 @@
 
 #include "fmt/format.h"
 
-#include "common/exception.h"
 #include "common/macros.h"
-#include "type/type.h"
+#include "type/type_id.h"
 
 namespace bustub {
 class AbstractExpression;
@@ -143,7 +142,10 @@ class Column {
 }  // namespace bustub
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::Column, T>::value, char>>
+constexpr bool IS_COLUMN_V = std::is_base_of_v<bustub::Column, T>;
+
+template <typename T>
+struct fmt::formatter<T, std::enable_if_t<IS_COLUMN_V<T>, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const bustub::Column &x, FormatCtx &ctx) const {
@@ -152,7 +154,7 @@ struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::Column, T>::va
 };
 
 template <typename T>
-struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<bustub::Column, T>::value, char>>
+struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<IS_COLUMN_V<T>, char>>
     : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::unique_ptr<bustub::Column> &x, FormatCtx &ctx) const {

@@ -37,8 +37,6 @@ class NumericType : public Type {
   auto IsZero(const Value &val) const -> bool override = 0;
 
  protected:
-  static inline auto ValMod(double x, double y) -> double {
-    return x - std::trunc(static_cast<double>(x) / static_cast<double>(y)) * y;
-  }
+  auto ValMod(double x, double y) const -> double { return x - std::trunc(x / y) * y; }
 };
 }  // namespace bustub

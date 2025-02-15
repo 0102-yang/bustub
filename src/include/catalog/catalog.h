@@ -12,7 +12,6 @@
 
 #pragma once
 
-#include <exception>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -36,7 +35,7 @@ using table_oid_t = uint32_t;
 using column_oid_t = uint32_t;
 using index_oid_t = uint32_t;
 
-enum class IndexType { BPlusTreeIndex, HashTableIndex };
+enum class IndexType : uint8_t { BPlusTreeIndex, HashTableIndex };
 
 /**
  * The TableInfo class maintains metadata about a table.
@@ -354,6 +353,7 @@ class Catalog {
 
   auto GetTableNames() -> std::vector<std::string> {
     std::vector<std::string> result;
+    result.reserve(table_names_.size());
     for (const auto &x : table_names_) {
       result.push_back(x.first);
     }

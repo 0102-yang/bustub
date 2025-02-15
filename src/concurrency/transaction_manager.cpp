@@ -14,7 +14,6 @@
 
 #include <memory>
 #include <mutex>  // NOLINT
-#include <optional>
 #include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -22,11 +21,10 @@
 #include "catalog/catalog.h"
 #include "common/config.h"
 #include "common/exception.h"
-#include "common/macros.h"
 #include "concurrency/transaction.h"
+#include "execution/execution_common.h"
 #include "storage/table/table_heap.h"
 #include "storage/table/tuple.h"
-#include "type/value_factory.h"
 
 namespace bustub {
 
@@ -94,6 +92,53 @@ void TransactionManager::Abort(Transaction *txn) {
   running_txns_.RemoveTxn(txn->read_ts_);
 }
 
-void TransactionManager::GarbageCollection() { UNIMPLEMENTED("not implemented"); }
+void TransactionManager::GarbageCollection() {
+  // Get the watermark.
+  const auto watermark = running_txns_.GetWatermark();
+
+  // Mark visible undo logs.
+  std::unordered_map<txn_id_t, uint> txn_visible_undo_logs_counts;
+  std::shared_lock lck(txn_map_mutex_);
+  for (const auto &[txn_id_, txn_] : txn_map_) {
+    txn_visible_undo_logs_counts[txn_id_] = static_cast<uint>(txn_->GetUndoLogNum());
+  }
+
+  for (const auto &[page_id, page_version_info] : version_info_) {
+    for (const auto &[slot_num, version_link] : page_version_info->prev_version_) {
+      auto link = version_link.prev_;
+      bool is_first_undo_log = true;
+      const auto tuple_ts =
+          catalog_->GetTable(page_id)->table_->GetTupleMeta({page_id, static_cast<uint32_t>(slot_num)}).ts_;
+      while (link.IsValid()) {
+        if (IsDanglingUndoLink(link, this)) {
+          break;
+        }
+
+        const auto &[is_deleted_, modified_fields_, tuple_, ts_, prev_version_] = GetUndoLog(link);
+        if (txn_visible_undo_logs_counts.find(link.prev_txn_) != txn_visible_undo_logs_counts.end()) {
+          if (ts_ < watermark) {
+            if (!is_first_undo_log || tuple_ts <= watermark) {
+              txn_visible_undo_logs_counts[link.prev_txn_]--;
+            }
+          }
+        }
+
+        if (is_first_undo_log) {
+          is_first_undo_log = false;
+        }
+        link = prev_version_;
+      }
+    }
+  }
+
+  // Remove unused transactions.
+  for (const auto &[txn_id_, undo_logs_counts] : txn_visible_undo_logs_counts) {
+    const auto txn = txn_map_[txn_id_];
+    if (const auto txn_state = txn->GetTransactionState();
+        undo_logs_counts == 0 && (txn_state == TransactionState::COMMITTED || txn_state == TransactionState::ABORTED)) {
+      txn_map_.erase(txn_id_);
+    }
+  }
+}
 
 }  // namespace bustub

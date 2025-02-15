@@ -12,23 +12,20 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "binder/bound_order_by.h"
-#include "common/util/hash_util.h"
 #include "execution/expressions/abstract_expression.h"
 #include "execution/plans/abstract_plan.h"
 #include "fmt/format.h"
-#include "storage/table/tuple.h"
 
 namespace bustub {
 
 /** WindowFunctionType enumerates all the possible window functions in our system */
-enum class WindowFunctionType { CountStarAggregate, CountAggregate, SumAggregate, MinAggregate, MaxAggregate, Rank };
+enum class WindowFunctionType : uint8_t { CountStarAggregate, CountAggregate, SumAggregate, MinAggregate, MaxAggregate, Rank };
 
 class WindowFunctionPlanNode : public AbstractPlanNode {
  public:

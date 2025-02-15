@@ -1,14 +1,14 @@
 {
   "name": "Bustub Ubuntu-24.04 Clang C++17",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
+  "image": "mcr.microsoft.com/devcontainers/cpp:ubuntu-24.04",
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-vscode.cpptools",
+        "GitHub.copilot",
+        "Fooxly.themeswitch",
         "llvm-vs-code-extensions.vscode-clangd",
+        "xaver.clang-format",
         "ms-vscode.cmake-tools"
       ]
     }
@@ -17,5 +17,7 @@
     "--cap-add=SYS_PTRACE",
     "--security-opt",
     "seccomp=unconfined"
-  ]
+  ],
+  "onCreateCommand": "./build_support/packages.sh -y",
+  "remoteUser": "vscode"
 }

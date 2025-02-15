@@ -29,19 +29,19 @@ namespace bustub {
 template <size_t KeySize>
 class GenericKey {
  public:
-  inline void SetFromKey(const Tuple &tuple) {
+  void SetFromKey(const Tuple &tuple) {
     // initialize to 0
     memset(data_, 0, KeySize);
     memcpy(data_, tuple.GetData(), tuple.GetLength());
   }
 
   // NOTE: for test purpose only
-  inline void SetFromInteger(int64_t key) {
+  void SetFromInteger(int64_t key) {
     memset(data_, 0, KeySize);
     memcpy(data_, &key, sizeof(int64_t));
   }
 
-  inline auto ToValue(Schema *schema, uint32_t column_idx) const -> Value {
+  auto ToValue(Schema *schema, uint32_t column_idx) const -> Value {
     const char *data_ptr;
     const auto &col = schema->GetColumn(column_idx);
     const TypeId column_type = col.GetType();
@@ -57,7 +57,7 @@ class GenericKey {
 
   // NOTE: for test purpose only
   // interpret the first 8 bytes as int64_t from data vector
-  inline auto ToString() const -> int64_t { return *reinterpret_cast<int64_t *>(const_cast<char *>(data_)); }
+  auto ToString() const -> int64_t { return *reinterpret_cast<int64_t *>(const_cast<char *>(data_)); }
 
   // NOTE: for test purpose only
   // interpret the first 8 bytes as int64_t from data vector
@@ -76,7 +76,7 @@ class GenericKey {
 template <size_t KeySize>
 class GenericComparator {
  public:
-  inline auto operator()(const GenericKey<KeySize> &lhs, const GenericKey<KeySize> &rhs) const -> int {
+  auto operator()(const GenericKey<KeySize> &lhs, const GenericKey<KeySize> &rhs) const -> int {
     uint32_t column_count = key_schema_->GetColumnCount();
 
     for (uint32_t i = 0; i < column_count; i++) {

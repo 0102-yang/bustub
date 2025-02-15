@@ -21,7 +21,7 @@ namespace bustub {
 
 class Value;
 
-enum class CmpBool { CmpFalse = 0, CmpTrue = 1, CmpNull = 2 };
+enum class CmpBool : uint8_t { CmpFalse = 0, CmpTrue = 1, CmpNull = 2 };
 
 class Type {
  public:
@@ -40,9 +40,9 @@ class Type {
   static auto GetMinValue(TypeId type_id) -> Value;
   static auto GetMaxValue(TypeId type_id) -> Value;
 
-  inline static auto GetInstance(TypeId type_id) -> Type * { return k_types[type_id]; }
+  static auto GetInstance(TypeId type_id) -> Type * { return k_types[type_id]; }
 
-  inline auto GetTypeId() const -> TypeId { return type_id_; }
+  auto GetTypeId() const -> TypeId { return type_id_; }
 
   // Comparison functions
   //

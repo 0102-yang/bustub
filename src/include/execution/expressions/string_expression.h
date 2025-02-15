@@ -20,16 +20,14 @@
 
 #include "catalog/schema.h"
 #include "common/exception.h"
-#include "common/macros.h"
 #include "execution/expressions/abstract_expression.h"
-#include "fmt/format.h"
 #include "storage/table/tuple.h"
 #include "type/type_id.h"
 #include "type/value_factory.h"
 
 namespace bustub {
 
-enum class StringExpressionType { Lower, Upper };
+enum class StringExpressionType : uint8_t { Lower, Upper };
 
 /**
  * StringExpression represents two expressions being computed.

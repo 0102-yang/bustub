@@ -85,27 +85,16 @@ install_mac() {
 
 install_linux() {
   # Set timezone.
-  export DEBIAN_FRONTEND=noninteractive
-  export TZ=Asia/Shanghai
-  sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+  # export DEBIAN_FRONTEND=noninteractive
+  # export TZ=Asia/Shanghai
+  # sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && sudo echo $TZ > /etc/timezone
 
   # Update apt-get.
-  apt-get -y update
+  sudo apt-get -y update
   # Install packages.
-  apt-get -y install --no-install-recommends \
-      build-essential \
-      clang-14 \
-      clangd-14 \
-      clang-format-14 \
-      clang-tidy-14 \
-      libclang-rt-14-dev \
-      cmake \
+  sudo apt-get -y install --no-install-recommends \
+      clang-tools \
       doxygen \
-      git \
-      gdb \
-      ninja-build \
-      doxygen \
-      pkg-config \
       zlib1g-dev \
       libelf-dev \
       libdwarf-dev \

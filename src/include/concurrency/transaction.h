@@ -37,12 +37,12 @@ class TransactionManager;
 /**
  * Transaction State.
  */
-enum class TransactionState { RUNNING = 0, TAINTED, COMMITTED = 100, ABORTED };
+enum class TransactionState : uint8_t { RUNNING = 0, TAINTED, COMMITTED = 100, ABORTED };
 
 /**
  * Transaction isolation level. READ_UNCOMMITTED will NOT be used in project 3/4 as of Fall 2023.
  */
-enum class IsolationLevel { READ_UNCOMMITTED, SNAPSHOT_ISOLATION, SERIALIZABLE };
+enum class IsolationLevel : uint8_t { READ_UNCOMMITTED, SNAPSHOT_ISOLATION, SERIALIZABLE };
 
 class TableHeap;
 class Catalog;
