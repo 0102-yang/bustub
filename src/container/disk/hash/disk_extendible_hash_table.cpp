@@ -10,19 +10,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "common/config.h"
-#include "common/exception.h"
 #include "common/logger.h"
-#include "common/macros.h"
 #include "common/rid.h"
-#include "common/util/hash_util.h"
 #include "container/disk/hash/disk_extendible_hash_table.h"
-#include "storage/index/hash_comparator.h"
 #include "storage/page/extendible_htable_bucket_page.h"
 #include "storage/page/extendible_htable_directory_page.h"
 #include "storage/page/extendible_htable_header_page.h"
@@ -56,8 +51,8 @@ DiskExtendibleHashTable<K, V, KC>::DiskExtendibleHashTable(const std::string &na
  * SEARCH
  *****************************************************************************/
 template <typename K, typename V, typename KC>
-auto DiskExtendibleHashTable<K, V, KC>::GetValue(const K &key, std::vector<V> *result, Transaction *transaction) const
-    -> bool {
+auto DiskExtendibleHashTable<K, V, KC>::GetValue(const K &key, std::vector<V> *result,
+                                                 Transaction *transaction) const -> bool {
   // Get bucket.
   // Get header page.
   auto header_guard = bpm_->FetchPageRead(header_page_id_);
@@ -221,9 +216,9 @@ auto DiskExtendibleHashTable<K, V, KC>::Remove(const K &key, Transaction *transa
   auto bucket_guard = bpm_->FetchPageWrite(bucket_page_id);
   auto bucket = bucket_guard.AsMut<ExtendibleHTableBucketPage<K, V, KC>>();
   auto is_removed = bucket->Remove(key, cmp_);
-  const std::string log_msg =
-      is_removed ? "Successfully removed key %u at bucket page %d." : "Failed to remove key %u at bucket page %d.";
-  LOG_TRACE(log_msg.c_str(), key_hash, bucket_page_id);
+  LOG_TRACE(
+      is_removed ? "Successfully removed key %u at bucket page %d." : "Failed to remove key %u at bucket page %d.",
+      key_hash, bucket_page_id);
 
   if (is_removed && bucket->IsEmpty()) {
     // Delete bucket page.
