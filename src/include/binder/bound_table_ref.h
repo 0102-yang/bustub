@@ -56,8 +56,7 @@ template <typename T>
 constexpr bool IS_BOUND_TABLE_REF_V = std::is_base_of_v<bustub::BoundTableRef, T>;
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<IS_BOUND_TABLE_REF_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<T, std::enable_if_t<IS_BOUND_TABLE_REF_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const T &x, FormatCtx &ctx) const {
     return fmt::formatter<std::string>::format(x.ToString(), ctx);

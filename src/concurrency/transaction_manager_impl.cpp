@@ -27,8 +27,7 @@ namespace bustub {
 
 auto TransactionManager::UpdateUndoLink(const RID rid, std::optional<UndoLink> prev_link,
                                         std::function<bool(std::optional<UndoLink>)> &&check) -> bool {
-  std::function wrapper_func =
-      [check](std::optional<VersionUndoLink> link) -> bool {
+  std::function wrapper_func = [check](std::optional<VersionUndoLink> link) -> bool {
     if (link.has_value()) {
       return check(link->prev_);
     }
@@ -96,7 +95,7 @@ auto TransactionManager::GetUndoLogOptional(UndoLink link) -> std::optional<Undo
   if (itr == txn_map_.end()) {
     return std::nullopt;
   }
-  const auto& txn = itr->second;
+  const auto &txn = itr->second;
   lck.unlock();
   return txn->GetUndoLog(link.prev_log_idx_);
 }

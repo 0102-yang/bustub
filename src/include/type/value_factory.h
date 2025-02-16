@@ -53,18 +53,18 @@ class ValueFactory {
   static auto GetBooleanValue(int8_t value) -> Value { return {TypeId::BOOLEAN, value}; }
 
   static auto GetVarcharValue(const char *value, bool manage_data,
-                                     __attribute__((__unused__)) AbstractPool *pool = nullptr) -> Value {
+                              __attribute__((__unused__)) AbstractPool *pool = nullptr) -> Value {
     auto len = static_cast<uint32_t>(value == nullptr ? 0U : strlen(value) + 1);
     return GetVarcharValue(value, len, manage_data);
   }
 
   static auto GetVarcharValue(const char *value, uint32_t len, bool manage_data,
-                                     __attribute__((__unused__)) AbstractPool *pool = nullptr) -> Value {
+                              __attribute__((__unused__)) AbstractPool *pool = nullptr) -> Value {
     return {TypeId::VARCHAR, value, len, manage_data};
   }
 
-  static auto GetVarcharValue(const std::string &value, __attribute__((__unused__)) AbstractPool *pool = nullptr)
-      -> Value {
+  static auto GetVarcharValue(const std::string &value,
+                              __attribute__((__unused__)) AbstractPool *pool = nullptr) -> Value {
     return {TypeId::VARCHAR, value};
   }
 

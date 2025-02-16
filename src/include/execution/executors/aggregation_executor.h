@@ -157,7 +157,7 @@ class SimpleAggregationHashTable {
 
  private:
   /** The hash table is just a map from aggregate keys to aggregate values */
-  std::unordered_map<AggregateKey, AggregateValue> ht_{};
+  std::unordered_map<AggregateKey, AggregateValue> ht_;
   /** The aggregate expressions that we have */
   const std::vector<AbstractExpressionRef> &agg_expressions_;  // NOLINT
   /** The types of aggregations that we have */

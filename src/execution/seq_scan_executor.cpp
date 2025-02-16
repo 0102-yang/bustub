@@ -68,8 +68,8 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
 }
 
 auto SeqScanExecutor::ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta,
-                                                               const RID &rid, const Schema &schema) const
-    -> std::optional<Tuple> {
+                                                               const RID &rid,
+                                                               const Schema &schema) const -> std::optional<Tuple> {
   auto *txn_manager = exec_ctx_->GetTransactionManager();
   const auto *txn = exec_ctx_->GetTransaction();
 
@@ -81,22 +81,21 @@ auto SeqScanExecutor::ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base
   // The tuple in heap is invisible to the transaction, need retrieve undo logs.
   const auto logs = RetrieveUndoLogs(txn_manager, rid, txn->GetReadTs());
 
-  if (!logs || logs->empty()) {
-    if (base_meta.is_deleted_ || base_meta.ts_ > txn->GetReadTs()) {
-      return std::nullopt;
+  if (logs.has_value() && !logs->empty()) {
+    if (!base_meta.is_deleted_ && base_meta.ts_ <= txn->GetReadTs()) {
+      // Reconstruct previous tuple version.
+      return ReconstructTuple(&schema, base_tuple, base_meta, logs.value());
     }
   }
-
-  // Reconstruct previous tuple version.
-  return ReconstructTuple(&schema, base_tuple, base_meta, logs.value());
+  return std::nullopt;
 }
 
 auto SeqScanExecutor::IsTupleVisibleToTransaction(const TupleMeta &base_meta, const Transaction *txn) -> bool {
   return txn->GetReadTs() >= base_meta.ts_ || txn->GetTransactionTempTs() == base_meta.ts_;
 }
 
-auto SeqScanExecutor::RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid, const timestamp_t read_ts)
-    -> std::optional<std::vector<UndoLog>> {
+auto SeqScanExecutor::RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid,
+                                       const timestamp_t read_ts) -> std::optional<std::vector<UndoLog>> {
   if (const auto optional_link = txn_manager->GetUndoLink(rid); optional_link.has_value()) {
     const auto watermark = txn_manager->GetWatermark();
     std::vector<UndoLog> logs;

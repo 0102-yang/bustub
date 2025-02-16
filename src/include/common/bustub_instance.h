@@ -101,11 +101,11 @@ class SimpleStreamWriter : public ResultWriter {
   void BeginHeader() override {}
   void EndHeader() override {
     if (!disable_header_) {
-      stream_ << std::endl;
+      stream_ << '\n';
     }
   }
   void BeginRow() override {}
-  void EndRow() override { stream_ << std::endl; }
+  void EndRow() override { stream_ << '\n'; }
   void BeginTable(bool simplified_output) override {}
   void EndTable() override {}
 
@@ -250,8 +250,8 @@ class BustubInstance {
   /**
    * Execute a SQL query in the BusTub instance.
    */
-  auto ExecuteSql(const std::string &sql, ResultWriter &writer, std::shared_ptr<CheckOptions> check_options = nullptr)
-      -> bool;
+  auto ExecuteSql(const std::string &sql, ResultWriter &writer,
+                  std::shared_ptr<CheckOptions> check_options = nullptr) -> bool;
 
   /**
    * Execute a SQL query in the BusTub instance with provided txn.

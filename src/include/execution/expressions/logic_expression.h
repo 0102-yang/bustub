@@ -29,7 +29,7 @@
 namespace bustub {
 
 /** ArithmeticType represents the type of logic operation that we want to perform. */
-enum class LogicType { And, Or };
+enum class LogicType : uint8_t { And, Or };
 
 /**
  * LogicExpression represents two expressions being computed.

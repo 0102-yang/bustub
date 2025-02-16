@@ -14,9 +14,9 @@
 
 #include <memory>
 
-#include "executor_result.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/update_plan.h"
+#include "executor_result.h"
 #include "storage/table/tuple.h"
 
 namespace bustub {
