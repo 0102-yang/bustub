@@ -53,8 +53,8 @@ class HashJoinExecutor final : public AbstractExecutor {
   [[nodiscard]] auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
  private:
-  static auto Hash(const Tuple *tuple, const Schema *schema, const std::vector<AbstractExpressionRef> &expressions)
-      -> hash_t;
+  static auto Hash(const Tuple *tuple, const Schema *schema,
+                   const std::vector<AbstractExpressionRef> &expressions) -> hash_t;
 
   /** The HashJoin plan node to be executed. */
   const HashJoinPlanNode *plan_;

@@ -90,9 +90,7 @@ class Value {
     return *reinterpret_cast<const T *>(&value_);
   }
 
-  auto CastAs(const TypeId type_id) const -> Value {
-    return Type::GetInstance(type_id_)->CastAs(*this, type_id);
-  }
+  auto CastAs(const TypeId type_id) const -> Value { return Type::GetInstance(type_id_)->CastAs(*this, type_id); }
   // You will likely need this in project 4...
   auto CompareExactlyEquals(const Value &o) const -> bool {
     if (this->IsNull() && o.IsNull()) {
@@ -101,9 +99,7 @@ class Value {
     return (Type::GetInstance(type_id_)->CompareEquals(*this, o)) == CmpBool::CmpTrue;
   }
   // Comparison Methods
-  auto CompareEquals(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareEquals(*this, o);
-  }
+  auto CompareEquals(const Value &o) const -> CmpBool { return Type::GetInstance(type_id_)->CompareEquals(*this, o); }
   auto CompareNotEquals(const Value &o) const -> CmpBool {
     return Type::GetInstance(type_id_)->CompareNotEquals(*this, o);
   }
@@ -180,8 +176,7 @@ template <typename T>
 constexpr bool IS_VALUE_V = std::is_base_of_v<bustub::Value, T>;
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<IS_VALUE_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<T, std::enable_if_t<IS_VALUE_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const bustub::Value &x, FormatCtx &ctx) const {
     return fmt::formatter<std::string>::format(x.ToString(), ctx);
@@ -189,8 +184,7 @@ struct fmt::formatter<T, std::enable_if_t<IS_VALUE_V<T>, char>>
 };
 
 template <typename T>
-struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<IS_VALUE_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<IS_VALUE_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::unique_ptr<bustub::Value> &x, FormatCtx &ctx) const {
     return fmt::formatter<std::string>::format(x->ToString(), ctx);

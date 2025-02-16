@@ -70,13 +70,13 @@ auto Tuple::GetValue(const Schema *schema, const uint32_t column_idx) const -> V
 auto Tuple::SetValue(const Schema *schema, const uint32_t column_idx, const Value &value) const -> void {
   assert(schema);
   const TypeId column_type = schema->GetColumn(column_idx).GetType();
-  BUSTUB_ENSURE(column_type == schema->GetColumn(column_idx).GetType(),"Set value must have the same column type.");
+  BUSTUB_ENSURE(column_type == schema->GetColumn(column_idx).GetType(), "Set value must have the same column type.");
   const char *data_ptr = GetDataPtr(schema, column_idx);
   value.SerializeTo(const_cast<char *>(data_ptr));
 }
 
-auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema, const std::vector<uint32_t> &key_attrs) const
-    -> Tuple {
+auto Tuple::KeyFromTuple(const Schema &schema, const Schema &key_schema,
+                         const std::vector<uint32_t> &key_attrs) const -> Tuple {
   std::vector<Value> values;
   values.reserve(key_attrs.size());
   for (const auto idx : key_attrs) {

@@ -25,7 +25,14 @@
 namespace bustub {
 
 /** WindowFunctionType enumerates all the possible window functions in our system */
-enum class WindowFunctionType : uint8_t { CountStarAggregate, CountAggregate, SumAggregate, MinAggregate, MaxAggregate, Rank };
+enum class WindowFunctionType : uint8_t {
+  CountStarAggregate,
+  CountAggregate,
+  SumAggregate,
+  MinAggregate,
+  MaxAggregate,
+  Rank
+};
 
 class WindowFunctionPlanNode : public AbstractPlanNode {
  public:

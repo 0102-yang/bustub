@@ -22,12 +22,12 @@
 
 namespace bustub {
 
-#define BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(cname)                                                          \
-  auto CloneWithChildren(std::vector<AbstractPlanNodeRef> children) const->std::unique_ptr<AbstractPlanNode> \
-      override {                                                                                             \
-    auto plan_node = cname(*this);                                                                           \
-    plan_node.children_ = children;                                                                          \
-    return std::make_unique<cname>(std::move(plan_node));                                                    \
+#define BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(cname)                                                            \
+  auto CloneWithChildren(std::vector<AbstractPlanNodeRef> children) const -> std::unique_ptr<AbstractPlanNode> \
+                                                                              override {                       \
+    auto plan_node = cname(*this);                                                                             \
+    plan_node.children_ = children;                                                                            \
+    return std::make_unique<cname>(std::move(plan_node));                                                      \
   }
 
 /** PlanType represents the types of plans that we have in our system. */
@@ -124,8 +124,7 @@ template <typename T>
 constexpr bool IS_ABSTRACT_PLAN_NODE_V = std::is_base_of_v<bustub::AbstractPlanNode, T>;
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<IS_ABSTRACT_PLAN_NODE_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<T, std::enable_if_t<IS_ABSTRACT_PLAN_NODE_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const T &x, FormatCtx &ctx) const {
     return fmt::formatter<std::string>::format(x.ToString(), ctx);

@@ -101,9 +101,9 @@ class TableHeap {
    * @param rid the rid of the tuple to be updated
    * @param check the check to run before actually update.
    */
-  auto UpdateTupleInPlace(const TupleMeta &meta, const Tuple &tuple, RID rid,
-                          std::function<bool(const TupleMeta &meta, const Tuple &table, RID rid)> &&check = nullptr) const
-    -> bool;
+  auto UpdateTupleInPlace(
+      const TupleMeta &meta, const Tuple &tuple, RID rid,
+      std::function<bool(const TupleMeta &meta, const Tuple &table, RID rid)> &&check = nullptr) const -> bool;
 
   /** For binder tests */
   static auto CreateEmptyHeap(const bool create_table_heap = false) -> std::unique_ptr<TableHeap> {

@@ -21,12 +21,12 @@
 #include "fmt/format.h"
 #include "storage/table/tuple.h"
 
-#define BUSTUB_EXPR_CLONE_WITH_CHILDREN(cname)                                                                   \
-  auto CloneWithChildren(std::vector<AbstractExpressionRef> children) const->std::unique_ptr<AbstractExpression> \
-      override {                                                                                                 \
-    auto expr = cname(*this);                                                                                    \
-    expr.children_ = children;                                                                                   \
-    return std::make_unique<cname>(std::move(expr));                                                             \
+#define BUSTUB_EXPR_CLONE_WITH_CHILDREN(cname)                                                                     \
+  auto CloneWithChildren(std::vector<AbstractExpressionRef> children) const -> std::unique_ptr<AbstractExpression> \
+                                                                                override {                         \
+    auto expr = cname(*this);                                                                                      \
+    expr.children_ = children;                                                                                     \
+    return std::make_unique<cname>(std::move(expr));                                                               \
   }
 
 namespace bustub {
@@ -95,8 +95,7 @@ template <typename T>
 constexpr bool IS_ABSTRACT_EXPRESSION_V = std::is_base_of_v<bustub::AbstractExpression, T>;
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<IS_ABSTRACT_EXPRESSION_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<T, std::enable_if_t<IS_ABSTRACT_EXPRESSION_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const T &x, FormatCtx &ctx) const {
     return fmt::formatter<std::string>::format(x.ToString(), ctx);

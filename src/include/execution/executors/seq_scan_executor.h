@@ -57,12 +57,12 @@ class SeqScanExecutor final : public AbstractExecutor {
   }
 
   [[nodiscard]] auto ReconstructTupleFromTableHeapAndUndoLogs(const Tuple &base_tuple, const TupleMeta &base_meta,
-                                                              const RID &rid, const Schema &schema) const
-      -> std::optional<Tuple>;
+                                                              const RID &rid,
+                                                              const Schema &schema) const -> std::optional<Tuple>;
 
   [[nodiscard]] static auto IsTupleVisibleToTransaction(const TupleMeta &base_meta, const Transaction *txn) -> bool;
 
-  [[nodiscard]] static auto RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid, timestamp_t read_ts)
-      -> std::optional<std::vector<UndoLog>>;
+  [[nodiscard]] static auto RetrieveUndoLogs(TransactionManager *txn_manager, const RID &rid,
+                                             timestamp_t read_ts) -> std::optional<std::vector<UndoLog>>;
 };
 }  // namespace bustub

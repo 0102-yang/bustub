@@ -29,7 +29,7 @@ TableIterator::TableIterator(TableHeap *table_heap, const RID rid, const RID sto
     rid_ = RID{INVALID_PAGE_ID, 0};
   } else {
     auto page_guard = table_heap_->bpm_->FetchPageRead(rid_.GetPageId());
-    if (auto* page = page_guard.As<TablePage>(); rid_.GetSlotNum() >= page->GetNumTuples()) {
+    if (auto *page = page_guard.As<TablePage>(); rid_.GetSlotNum() >= page->GetNumTuples()) {
       rid_ = RID{INVALID_PAGE_ID, 0};
     }
   }

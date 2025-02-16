@@ -16,8 +16,8 @@
 
 #include "container/hash/hash_function.h"
 #include "storage/index/b_plus_tree.h"
-#include "storage/index/index.h"
 #include "storage/index/generic_key.h"
+#include "storage/index/index.h"
 
 namespace bustub {
 

@@ -117,8 +117,7 @@ template <typename T>
 constexpr bool IS_SCHEMA_V = std::is_base_of_v<bustub::Schema, T>;
 
 template <typename T>
-struct fmt::formatter<T, std::enable_if_t<IS_SCHEMA_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<T, std::enable_if_t<IS_SCHEMA_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const bustub::Schema &x, FormatCtx &ctx) const {
     return fmt::formatter<std::string>::format(x.ToString(), ctx);
@@ -126,8 +125,7 @@ struct fmt::formatter<T, std::enable_if_t<IS_SCHEMA_V<T>, char>>
 };
 
 template <typename T>
-struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<IS_SCHEMA_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<IS_SCHEMA_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::shared_ptr<T> &x, FormatCtx &ctx) const {
     if (x != nullptr) {
@@ -138,8 +136,7 @@ struct fmt::formatter<std::shared_ptr<T>, std::enable_if_t<IS_SCHEMA_V<T>, char>
 };
 
 template <typename T>
-struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<IS_SCHEMA_V<T>, char>>
-    : fmt::formatter<std::string> {
+struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<IS_SCHEMA_V<T>, char>> : fmt::formatter<std::string> {
   template <typename FormatCtx>
   auto format(const std::unique_ptr<T> &x, FormatCtx &ctx) const {
     if (x != nullptr) {

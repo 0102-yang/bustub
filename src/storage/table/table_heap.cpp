@@ -120,7 +120,7 @@ auto TableHeap::MakeEagerIterator() -> TableIterator { return {this, {first_page
 
 auto TableHeap::UpdateTupleInPlace(const TupleMeta &meta, const Tuple &tuple, const RID rid,
                                    std::function<bool(const TupleMeta &m, const Tuple &table, RID r)> &&check) const
-  -> bool {
+    -> bool {
   auto page_guard = bpm_->FetchPageWrite(rid.GetPageId());
   const auto page = page_guard.AsMut<TablePage>();
   if (auto [old_meta, old_tup] = page->GetTuple(rid); check == nullptr || check(old_meta, old_tup, rid)) {
@@ -130,9 +130,13 @@ auto TableHeap::UpdateTupleInPlace(const TupleMeta &meta, const Tuple &tuple, co
   return false;
 }
 
-auto TableHeap::AcquireTablePageReadLock(const RID rid) const -> ReadPageGuard { return bpm_->FetchPageRead(rid.GetPageId()); }
+auto TableHeap::AcquireTablePageReadLock(const RID rid) const -> ReadPageGuard {
+  return bpm_->FetchPageRead(rid.GetPageId());
+}
 
-auto TableHeap::AcquireTablePageWriteLock(const RID rid) const -> WritePageGuard { return bpm_->FetchPageWrite(rid.GetPageId()); }
+auto TableHeap::AcquireTablePageWriteLock(const RID rid) const -> WritePageGuard {
+  return bpm_->FetchPageWrite(rid.GetPageId());
+}
 
 void TableHeap::UpdateTupleInPlaceWithLockAcquired(const TupleMeta &meta, const Tuple &tuple, const RID rid,
                                                    TablePage *page) {
