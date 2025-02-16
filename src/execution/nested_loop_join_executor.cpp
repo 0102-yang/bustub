@@ -25,7 +25,7 @@ NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const 
       left_executor_(std::move(left_executor)),
       right_executor_(std::move(right_executor)),
       executor_result_(&GetOutputSchema()) {
-  if (!(plan->GetJoinType() == JoinType::LEFT || plan->GetJoinType() == JoinType::INNER)) {
+  if (plan->GetJoinType() != JoinType::LEFT && plan->GetJoinType() != JoinType::INNER) {
     // Note for 2023 Fall: You ONLY need to implement left join and inner join.
     throw NotImplementedException(fmt::format("join type {} not supported", plan->GetJoinType()));
   }
